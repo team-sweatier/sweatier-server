@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Rank {
+  id    String @id
+  value String
+
+  sportsTypeId String
+  sportType    SportsType @relation(fields: [sportsTypeId], references: [id])
+
+  user  User[]
+  match Match[]
+}
+
+model User {
+  id String @id
+
+  userProfile UserProfile?
+
+  match Match[]
+  score Score[]
+
+  rankId String
+  rank   Rank   @relation(fields: [rankId], references: [id])
+
+  email              String  @unique
+  encryptedPasswords String?
+  phoneNumber        String
+  gender             Gender
+
+  accountNumber String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserProfile {
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id])
+
+  img String
+
+  nickName String  @unique
+  oneLiner String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Match {
+  id String @id
+
+  hostId String
+  host   User   @relation(fields: [hostId], references: [id])
+
+  score Score[]
+
+  sportsTypeId String
+  sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
+
+  rankId String
+  rank   Rank   @relation(fields: [rankId], references: [id])
+
+  title   String
+  content String
+
+  currentApplicants Int @default(0)
+  capability        Int
+
+  address String
+
+  matchDay DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Score {
+  id String @id
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  sportsTypeId String
+  sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
+
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id])
+
+  value Int
+
+  createdAt DateTime
+}
+
+model SportsType {
+  id   String @id
+  name String
+
+  score Score[]
+  rank  Rank[]
+  Match Match[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
