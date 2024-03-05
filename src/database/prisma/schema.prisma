@@ -13,9 +13,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Rank {
-  id    String @id
-  value String
+model Tier {
+  id          String @id
+  value       String
+  description String
 
   sportsTypeId String
   sportType    SportsType @relation(fields: [sportsTypeId], references: [id])
@@ -32,8 +33,8 @@ model User {
   match Match[]
   score Score[]
 
-  rankId String
-  rank   Rank   @relation(fields: [rankId], references: [id])
+  tierId String
+  tier   Tier   @relation(fields: [tierId], references: [id])
 
   email              String  @unique
   encryptedPasswords String?
@@ -70,14 +71,16 @@ model Match {
   sportsTypeId String
   sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
 
-  rankId String
-  rank   Rank   @relation(fields: [rankId], references: [id])
+  tierId String
+  tier   Tier   @relation(fields: [tierId], references: [id])
 
   title   String
   content String
 
-  currentApplicants Int @default(0)
-  capability        Int
+  applicants Int @default(0)
+  capability Int
+
+  expired Boolean
 
   address String
 
@@ -109,8 +112,8 @@ model SportsType {
   name String
 
   score Score[]
-  rank  Rank[]
-  Match Match[]
+  tier  Tier[]
+  match Match[]
 }
 
 enum Gender {
