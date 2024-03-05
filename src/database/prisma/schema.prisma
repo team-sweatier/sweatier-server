@@ -41,10 +41,7 @@ model User {
 
   email             String  @unique
   encryptedPassword String?
-  phoneNumber       String
   gender            Gender
-
-  accountNumber String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,6 +55,7 @@ model UserProfile {
 
   nickName String  @unique
   oneLiner String?
+  accountNumber String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
