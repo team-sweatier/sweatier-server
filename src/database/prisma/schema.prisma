@@ -30,9 +30,9 @@ model User {
 
   userProfile UserProfile?
 
-  hostinggMatches      Match[] @relation(name: "hostMatches")
-  participatingMatches Match[] @relation(name: "participantMatches")
-  likedMatches         Match[] @relation(name: "likerMatches")
+  hostinggMatches      Match[]      @relation(name: "hostMatch")
+  participatingMatches Match[]      @relation(name: "participantMatch")
+  likedSportsTypes     SportsType[] @relation(name: "likerSportsType")
 
   score Score[]
 
@@ -67,10 +67,9 @@ model Match {
   id String @id
 
   hostId String
-  host   User   @relation(name: "hostMatches", fields: [hostId], references: [id])
+  host   User   @relation(name: "hostMatch", fields: [hostId], references: [id])
 
-  participants User[] @relation(name: "participantMatches")
-  likers       User[] @relation(name: "likerMatches")
+  participants User[] @relation(name: "participantMatch")
 
   score Score[]
 
@@ -80,9 +79,9 @@ model Match {
   tierId String
   tier   Tier   @relation(fields: [tierId], references: [id])
 
-  title   String
-  content String
-
+  title      String
+  content    String
+  gender     Gender
   capability Int
 
   expired Boolean
@@ -116,12 +115,14 @@ model SportsType {
   id   String @id
   name String
 
-  score Score[]
-  tier  Tier[]
-  match Match[]
+  score  Score[]
+  tier   Tier[]
+  match  Match[]
+  likers User[]  @relation(name: "likerSportsType")
 }
 
 enum Gender {
   male
   female
+  both
 }
