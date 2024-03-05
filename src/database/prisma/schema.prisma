@@ -30,16 +30,17 @@ model User {
 
   userProfile UserProfile?
 
-  match Match[]
-  score Score[]
+  hostinggMatches      Match[] @relation(name: "hostMatches")
+  participatingMatches Match[] @relation(name: "participantMatches")
+  score                Score[]
 
   tierId String
   tier   Tier   @relation(fields: [tierId], references: [id])
 
-  email              String  @unique
-  encryptedPasswords String?
-  phoneNumber        String
-  gender             Gender
+  email             String  @unique
+  encryptedPassword String?
+  phoneNumber       String
+  gender            Gender
 
   accountNumber String
 
@@ -64,7 +65,9 @@ model Match {
   id String @id
 
   hostId String
-  host   User   @relation(fields: [hostId], references: [id])
+  host   User   @relation(name: "hostMatches", fields: [hostId], references: [id])
+
+  participants User[] @relation(name: "participantMatches")
 
   score Score[]
 
@@ -77,7 +80,6 @@ model Match {
   title   String
   content String
 
-  applicants Int @default(0)
   capability Int
 
   expired Boolean
@@ -117,6 +119,6 @@ model SportsType {
 }
 
 enum Gender {
-  MALE
-  FEMALE
+  male
+  female
 }
