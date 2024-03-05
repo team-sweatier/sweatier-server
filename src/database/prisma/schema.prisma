@@ -32,7 +32,9 @@ model User {
 
   hostinggMatches      Match[] @relation(name: "hostMatches")
   participatingMatches Match[] @relation(name: "participantMatches")
-  score                Score[]
+  likedMatches         Match[] @relation(name: "likerMatches")
+
+  score Score[]
 
   tierId String
   tier   Tier   @relation(fields: [tierId], references: [id])
@@ -68,6 +70,7 @@ model Match {
   host   User   @relation(name: "hostMatches", fields: [hostId], references: [id])
 
   participants User[] @relation(name: "participantMatches")
+  likers       User[] @relation(name: "likerMatches")
 
   score Score[]
 
