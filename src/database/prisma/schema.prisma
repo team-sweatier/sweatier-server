@@ -30,7 +30,7 @@ model User {
 
   userProfile UserProfile?
 
-  hostinggMatches      Match[]      @relation(name: "hostMatch")
+  hostingMatches       Match[]      @relation(name: "hostMatch")
   participatingMatches Match[]      @relation(name: "participantMatch")
   likedSportsTypes     SportsType[] @relation(name: "likerSportsType")
 
