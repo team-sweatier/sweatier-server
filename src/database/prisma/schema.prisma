@@ -82,8 +82,6 @@ model Match {
   gender     Gender
   capability Int
 
-  expired Boolean
-
   address String
 
   matchDay DateTime
