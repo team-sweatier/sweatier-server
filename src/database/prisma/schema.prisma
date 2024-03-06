@@ -51,9 +51,9 @@ model UserProfile {
   userId String @id
   user   User   @relation(fields: [userId], references: [id])
 
-  img    String
-  gender Gender
-
+  img               String
+  gender            Gender
+  phoneNumber       String    @unique
   nickName          String    @unique
   nickNameUpdatedAt DateTime?
 
