@@ -5,6 +5,7 @@ import { compare, hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
+import dayUtil from 'src/utils/day';
 import {
   CreateProfileDto,
   EditProfileDto,
@@ -89,10 +90,40 @@ export class UsersService {
   }
 
   async editProfile(userId: string, editProfileDto: EditProfileDto) {
+    const isNicknameUpdated = editProfileDto.nickName !== undefined;
+
+    const data = {
+      ...editProfileDto,
+      ...(isNicknameUpdated && {
+        nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
+      }),
+    };
+
     const editedProfile = await this.prismaService.userProfile.update({
       where: { userId },
-      data: { ...editProfileDto },
+      data,
     });
     return editedProfile;
+
+    // if (isNicknameUpdated) {
+    //   const editedProfile = await this.prismaService.userProfile.update({
+    //     where: { userId },
+    //     data: {
+    //       userId,
+    //       nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
+    //       ...editProfileDto,
+    //     },
+    //   });
+    //   return editedProfile;
+    // } else {
+    //   const editedProfile = await this.prismaService.userProfile.update({
+    //     where: { userId },
+    //     data: {
+    //       userId,
+    //       ...editProfileDto,
+    //     },
+    //   });
+    //   return editedProfile;
+    // }
   }
 }

@@ -102,20 +102,25 @@ export class UsersController {
     @Body() editProfileDto: EditProfileDto,
   ) {
     const profile = await this.usersService.findProfileByUserId(userId);
-    const duplicateNickname = await this.usersService.findProfileByNickname(
-      editProfileDto.nickName,
-    );
 
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
     else if (profile.userId !== userId)
       throw new ForbiddenException(NOT_ALLOWED_USER);
 
-    if (duplicateNickname) throw new ConflictException(DUPLICATE_NICKNAME);
+    if (editProfileDto.nickName) {
+      const duplicateNickname = await this.usersService.findProfileByNickname(
+        editProfileDto.nickName,
+      );
+      if (duplicateNickname) {
+        throw new ConflictException(DUPLICATE_NICKNAME);
+      }
+    }
 
     const editedProfile = await this.usersService.editProfile(
       userId,
       editProfileDto,
     );
+
     return editedProfile;
   }
 }
