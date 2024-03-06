@@ -5,7 +5,12 @@ import { compare, hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
-import { SignInUserDto, SignUpUserDto } from './users.dto';
+import {
+  CreateProfileDto,
+  EditProfileDto,
+  SignInUserDto,
+  SignUpUserDto,
+} from './users.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,6 +22,18 @@ export class UsersService {
   async findUserByEmail(userEmail: string) {
     return await this.prismaService.user.findUnique({
       where: { email: userEmail },
+    });
+  }
+
+  async findProfileByNickname(userNickName: string) {
+    return await this.prismaService.userProfile.findUnique({
+      where: { nickName: userNickName },
+    });
+  }
+
+  async findProfileByUserId(userId: string) {
+    return await this.prismaService.userProfile.findUnique({
+      where: { userId },
     });
   }
 
@@ -59,5 +76,23 @@ export class UsersService {
     });
 
     return newUser;
+  }
+
+  async createProfile(userId: string, createProfileDto: CreateProfileDto) {
+    const profile = await this.prismaService.userProfile.create({
+      data: {
+        userId,
+        ...createProfileDto,
+      },
+    });
+    return profile;
+  }
+
+  async editProfile(userId: string, editProfileDto: EditProfileDto) {
+    const editedProfile = await this.prismaService.userProfile.update({
+      where: { userId },
+      data: { ...editProfileDto },
+    });
+    return editedProfile;
   }
 }
