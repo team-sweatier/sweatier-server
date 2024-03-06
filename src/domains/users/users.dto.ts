@@ -1,5 +1,5 @@
 import { Gender } from '@prisma/client';
-import { IsEmail, IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsString, Matches, MinLength } from 'class-validator';
 import {
   INVALID_EMAIL_FORMAT,
   INVALID_PASSWORD_FORMAT,
@@ -33,7 +33,7 @@ export class SignInUserDto {
 export class CreateProfileDto {
   //img: FormData;
   img: string; //임시
-
+  @IsEnum(Gender)
   gender: Gender;
   @IsString()
   phoneNumber: string;
@@ -50,7 +50,7 @@ export class CreateProfileDto {
 export class EditProfileDto {
   //img: FormData;
   img: string; //임시
-
+  @IsEnum(Gender)
   gender: Gender;
   @IsString()
   phoneNumber: string;
