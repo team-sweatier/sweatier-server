@@ -1,12 +1,32 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import {
+  Controller,
+  Get,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { nanoid } from 'nanoid';
+import { GCSService } from './storage/google/gcs.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly gcsService: GCSService,
+    private configService: ConfigService,
+  ) {}
 
-  @Get()
+  @Get('health-check')
   getHello(): string {
-    return this.appService.getHello();
+    return 'OK';
+  }
+
+  @Post('images')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    const fileName = nanoid(this.configService.get('NANOID_SIZE'));
+
+    return this.gcsService.uploadImage(fileName, file);
   }
 }

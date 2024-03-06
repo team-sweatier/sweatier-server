@@ -1,12 +1,15 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { StorageService } from '../storage.service';
 
 @Injectable()
-export class AmazonS3Service {
+export class S3Service extends StorageService {
   s3Client: S3Client;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(readonly configService: ConfigService) {
+    super(configService);
+
     this.s3Client = new S3Client({
       region: this.configService.get('AWS_REGION'),
       credentials: {
@@ -16,11 +19,9 @@ export class AmazonS3Service {
     });
   }
 
-  async imageUploadToS3(
-    fileName: string,
-    file: Express.Multer.File,
-    ext: string,
-  ) {
+  async uploadImage(fileName: string, file: Express.Multer.File) {
+    const ext = file.originalname.split('.').pop();
+
     const command = new PutObjectCommand({
       Bucket: this.configService.get('AWS_S3_BUCKET_NAME'),
       Key: fileName,
