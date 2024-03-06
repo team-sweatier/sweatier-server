@@ -15,14 +15,16 @@ datasource db {
 
 model Tier {
   id          String @id
-  value       String
+  value       String @default("beginner")
   description String
 
-  sportsTypeId String
+  sportsTypeId Int
   sportType    SportsType @relation(fields: [sportsTypeId], references: [id])
 
-  user  User[]
+  users User[]  @relation(name: "userTier")
   match Match[]
+
+  @@unique([value, sportsTypeId])
 }
 
 model User {
@@ -36,12 +38,10 @@ model User {
 
   score Score[]
 
-  tierId String
-  tier   Tier   @relation(fields: [tierId], references: [id])
+  tiers Tier[] @relation(name: "userTier")
 
   email             String  @unique
   encryptedPassword String?
-  gender            Gender
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -51,10 +51,14 @@ model UserProfile {
   userId String @id
   user   User   @relation(fields: [userId], references: [id])
 
-  img String
+  img    String
+  gender Gender
 
-  nickName String  @unique
-  oneLiner String?
+  nickName          String    @unique
+  nickNameUpdatedAt DateTime?
+
+  oneLiner      String?
+  bankName      String
   accountNumber String
 
   createdAt DateTime @default(now())
@@ -71,7 +75,7 @@ model Match {
 
   score Score[]
 
-  sportsTypeId String
+  sportsTypeId Int
   sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
 
   tierId String
@@ -96,7 +100,7 @@ model Score {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  sportsTypeId String
+  sportsTypeId Int
   sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
 
   matchId String
@@ -108,8 +112,8 @@ model Score {
 }
 
 model SportsType {
-  id   String @id
-  name String
+  id   Int    @id @default(autoincrement())
+  name String @unique
 
   score  Score[]
   tier   Tier[]
