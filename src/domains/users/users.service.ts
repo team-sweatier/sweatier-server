@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { compare, hash } from 'bcrypt';
@@ -6,8 +6,10 @@ import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 import dayUtil from 'src/utils/day';
+import { NOT_FOUND_SPORT_TYPE } from './users-error.messages';
 import {
   CreateProfileDto,
+  EditFavoriteDto,
   EditProfileDto,
   SignInUserDto,
   SignUpUserDto,
@@ -47,6 +49,17 @@ export class UsersService {
     );
 
     return passwordMatch;
+  }
+
+  async getUserTier(userId: string) {
+    return await this.prismaService.user.findUnique({
+      where: { id: userId },
+      select: {
+        tiers: {
+          select: { value: true, sportType: { select: { name: true } } },
+        },
+      },
+    });
   }
 
   async createUser(signUpUserDto: SignUpUserDto) {
@@ -104,26 +117,27 @@ export class UsersService {
       data,
     });
     return editedProfile;
+  }
 
-    // if (isNicknameUpdated) {
-    //   const editedProfile = await this.prismaService.userProfile.update({
-    //     where: { userId },
-    //     data: {
-    //       userId,
-    //       nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
-    //       ...editProfileDto,
-    //     },
-    //   });
-    //   return editedProfile;
-    // } else {
-    //   const editedProfile = await this.prismaService.userProfile.update({
-    //     where: { userId },
-    //     data: {
-    //       userId,
-    //       ...editProfileDto,
-    //     },
-    //   });
-    //   return editedProfile;
-    // }
+  async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {
+    const sportsTypes = await this.prismaService.sportsType.findMany({
+      where: {
+        name: { in: editFavoriteDto.sportType },
+      },
+    });
+
+    if (sportsTypes.length !== editFavoriteDto.sportType.length) {
+      throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
+    } else {
+      await this.prismaService.user.update({
+        where: { id: userId },
+        data: {
+          likedSportsTypes: {
+            connect: sportsTypes.map((type) => ({ id: type.id })),
+          },
+        },
+      });
+      return sportsTypes;
+    }
   }
 }

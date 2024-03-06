@@ -3,6 +3,7 @@ import {
   ConflictException,
   Controller,
   ForbiddenException,
+  Get,
   NotFoundException,
   Param,
   Post,
@@ -21,6 +22,7 @@ import {
 } from './users-error.messages';
 import {
   CreateProfileDto,
+  EditFavoriteDto,
   EditProfileDto,
   SignInUserDto,
   SignUpUserDto,
@@ -132,5 +134,27 @@ export class UsersController {
     );
 
     return editedProfile;
+  }
+
+  /**
+   * TODO: DUser 나 Private 유저 온리 걸기.
+   * TODO: user 확인하기.
+   */
+  @Get(':userId/tier')
+  async getUserTier(@Param('userId') userId: string) {
+    return await this.usersService.getUserTier(userId);
+  }
+
+  /**
+   * TODO: DUser 나 Private 유저 온리 걸기.
+   * TODO: user 확인하기.
+   */
+  @Put(':userId/favorite')
+  async editUserFavorite(
+    @Param('userId') userId: string,
+    @Body()
+    editFavoriteDto: EditFavoriteDto,
+  ) {
+    return await this.usersService.editUserFavorite(userId, editFavoriteDto);
   }
 }
