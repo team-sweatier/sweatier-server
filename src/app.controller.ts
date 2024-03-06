@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -25,8 +26,10 @@ export class AppController {
   @Post('images')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('File not found');
+
     const fileName = nanoid(this.configService.get('NANOID_SIZE'));
 
-    return this.gcsService.uploadImage(fileName, file);
+    return await this.gcsService.uploadImage(fileName, file);
   }
 }
