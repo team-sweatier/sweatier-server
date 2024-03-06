@@ -20,7 +20,7 @@ export class S3Service extends StorageService {
   }
 
   async uploadImage(fileName: string, file: Express.Multer.File) {
-    const ext = file.originalname.split('.').pop();
+    const ext = this.getExt(file);
 
     const command = new PutObjectCommand({
       Bucket: this.configService.get('AWS_S3_BUCKET_NAME'),

@@ -27,12 +27,12 @@ export class GCSService extends StorageService {
   async uploadImage(fileName: string, file: Express.Multer.File) {
     const bucketFile = this.bucket.file(fileName);
 
-    const ext = file.originalname.split('.').pop();
+    const ext = this.getExt(file);
     await bucketFile.save(file.buffer, {
       public: true,
       contentType: `image/${ext}`,
     });
 
-    return `https://storage.googleapis.com/sweatier-user-profile-image/${fileName}`;
+    return `https://storage.googleapis.com/${this.configService.get('GCS_BUCKET_NAME')}/${fileName}`;
   }
 }
