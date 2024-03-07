@@ -1,21 +1,22 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   Param,
+  Delete,
   Post,
+  Body,
   Put,
+  Patch,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { DAccount } from 'src/decorators/account.decorator';
-import { Private } from 'src/decorators/private.decorator';
-import { CreateMatchDto, UpdateMatchDto } from './matches.dto';
 import { MatchesService } from './matches.service';
+import { User } from '@prisma/client';
+import { CreateMatchDto, UpdateMatchDto } from './matches.dto';
+import { Private } from 'src/decorators/private.decorator';
+import { DAccount } from 'src/decorators/account.decorator';
 
 @Controller('matches')
 export class MatchesController {
-  constructor(private readonly matchesService: MatchesService) {}
+  constructor(private readonly matchesService: MatchesService) { }
 
   @Get()
   async findMatches() {
@@ -50,5 +51,14 @@ export class MatchesController {
     @Param('matchId') matchId: string,
   ) {
     return await this.matchesService.deleteMatch(user.id, matchId);
+  }
+
+  @Put(':matchId/participate')
+  @Private('user')
+  async applyMatch(
+    @DAccount('user') user: User,
+    @Param('matchId') matchId: string,
+  ) {
+    return await this.matchesService.participate(matchId, user.id);
   }
 }
