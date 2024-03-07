@@ -1,21 +1,21 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
   Param,
-  Delete,
   Post,
-  Body,
   Put,
 } from '@nestjs/common';
-import { MatchesService } from './matches.service';
 import { User } from '@prisma/client';
-import { CreateMatchDto, UpdateMatchDto } from './matches.dto';
-import { Private } from 'src/decorators/private.decorator';
 import { DAccount } from 'src/decorators/account.decorator';
+import { Private } from 'src/decorators/private.decorator';
+import { CreateMatchDto, UpdateMatchDto } from './matches.dto';
+import { MatchesService } from './matches.service';
 
 @Controller('matches')
 export class MatchesController {
-  constructor(private readonly matchesService: MatchesService) { }
+  constructor(private readonly matchesService: MatchesService) {}
 
   @Get()
   async findMatches() {
