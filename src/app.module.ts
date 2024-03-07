@@ -8,6 +8,7 @@ import { UsersModule } from './domains/users/users.module';
 import { AuthGuard } from './guards/auth.guard';
 import { JwtManagerModule } from './jwt-manager/jwt-manager.module';
 import { StorageModule } from './storage/storage.module';
+import { TiersModule } from './domains/tiers/tiers.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { StorageModule } from './storage/storage.module';
     UsersModule,
     MatchesModule,
     StorageModule,
+    TiersModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
