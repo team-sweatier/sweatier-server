@@ -56,7 +56,7 @@ export class MatchesService {
       },
     });
 
-    const updatedMatch = await this.prismaService.match.findUnique({
+    return await this.prismaService.match.findUnique({
       where: { id: id },
       include: { participants: true },
     });
@@ -64,9 +64,6 @@ export class MatchesService {
       where: { id: id },
       include: { participants: true },
     });
-
-    console.log(updatedMatch.participants.length);
-    return updatedMatch;
   }
 
   async editMatch(userId: string, matchId: string, data: UpdateMatchDto) {

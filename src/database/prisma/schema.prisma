@@ -85,8 +85,8 @@ model Match {
   gender     Gender
   capability Int
 
-  latitude Int
-  longitude Int
+  latitude Float
+  longitude Float
   address String
 
   matchDay DateTime
