@@ -5,11 +5,13 @@ import {
   ForbiddenException,
   Get,
   NotFoundException,
-  Param,
   Post,
   Put,
   UnauthorizedException,
 } from '@nestjs/common';
+import { User } from '@prisma/client';
+import { DAccount } from 'src/decorators/account.decorator';
+import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import dayUtil from 'src/utils/day';
 import {
@@ -73,14 +75,11 @@ export class UsersController {
     return { accessToken };
   }
 
-  /**
-   * TODO: DUser 나 Private 유저 온리 걸기.
-   * TODO: user 확인하기.
-   */
-  @Post(':userId/profile')
+  @Private('user')
+  @Post('profile')
   async createProfile(
-    @Param('userId') userId: string,
     @Body() createProfileDto: CreateProfileDto,
+    @DAccount('user') user: User,
   ) {
     const duplicateNickname = await this.usersService.findProfileByNickname(
       createProfileDto.nickName,
@@ -89,26 +88,23 @@ export class UsersController {
     if (duplicateNickname) throw new ConflictException(DUPLICATE_NICKNAME);
 
     const profile = await this.usersService.createProfile(
-      userId,
+      user.id,
       createProfileDto,
     );
 
     return profile;
   }
 
-  /**
-   * TODO: DUser 나 Private 유저 온리 걸기.
-   * TODO: user 확인하기.
-   */
-  @Put(':userId/profile')
+  @Private('user')
+  @Put('profile')
   async editProfile(
-    @Param('userId') userId: string,
     @Body() editProfileDto: EditProfileDto,
+    @DAccount('user') user: User,
   ) {
-    const profile = await this.usersService.findProfileByUserId(userId);
+    const profile = await this.usersService.findProfileByUserId(user.id);
 
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
-    else if (profile.userId !== userId)
+    else if (profile.userId !== user.id)
       throw new ForbiddenException(NOT_ALLOWED_USER);
 
     if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
@@ -129,32 +125,26 @@ export class UsersController {
     }
 
     const editedProfile = await this.usersService.editProfile(
-      userId,
+      user.id,
       editProfileDto,
     );
 
     return editedProfile;
   }
 
-  /**
-   * TODO: DUser 나 Private 유저 온리 걸기.
-   * TODO: user 확인하기.
-   */
-  @Get(':userId/tier')
-  async getUserTier(@Param('userId') userId: string) {
-    return await this.usersService.getUserTier(userId);
+  @Private('user')
+  @Get('tier')
+  async getUserTier(@DAccount('user') user: User) {
+    return await this.usersService.getUserTier(user.id);
   }
 
-  /**
-   * TODO: DUser 나 Private 유저 온리 걸기.
-   * TODO: user 확인하기.
-   */
-  @Put(':userId/favorite')
+  @Private('user')
+  @Put('favorite')
   async editUserFavorite(
-    @Param('userId') userId: string,
     @Body()
     editFavoriteDto: EditFavoriteDto,
+    @DAccount('user') user: User,
   ) {
-    return await this.usersService.editUserFavorite(userId, editFavoriteDto);
+    return await this.usersService.editUserFavorite(user.id, editFavoriteDto);
   }
 }
