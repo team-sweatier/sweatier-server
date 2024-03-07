@@ -60,10 +60,6 @@ export class MatchesService {
       where: { id: id },
       include: { participants: true },
     });
-    this.prismaService.match.findUnique({
-      where: { id: id },
-      include: { participants: true },
-    });
   }
 
   async editMatch(userId: string, matchId: string, data: UpdateMatchDto) {

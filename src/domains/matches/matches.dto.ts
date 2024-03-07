@@ -74,7 +74,6 @@ export class UpdateMatchDto {
   @IsNotEmpty({ message: '티어를 설정해주세요' })
   tierId?: string;
 
-
   @IsString()
   @IsOptional()
   @MinLength(5, { message: '주소를 입력해주세요.' })
