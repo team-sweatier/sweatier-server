@@ -127,6 +127,7 @@ export class UsersService {
     });
 
     if (sportsTypes.length !== editFavoriteDto.sportType.length) {
+      //DTO 의 스포츠 타입이 DB의 스포츠 타입 시드데이터에 다 일치하게 존재하는지 검사
       throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
     } else {
       await this.prismaService.user.update({
