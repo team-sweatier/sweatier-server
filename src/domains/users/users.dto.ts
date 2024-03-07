@@ -63,3 +63,8 @@ export class EditProfileDto {
   @IsString()
   oneLiner?: string;
 }
+
+export class EditFavoriteDto {
+  // @IsString()
+  sportType: string[];
+}

@@ -18,3 +18,5 @@ export const NOT_ALLOWED_USER = '접근 권한이 없는 유저입니다.';
 
 export const INVALID_CHANGE_NICKNAME =
   '닉네임은 30일에 한번씩 바꿀 수 있습니다';
+
+export const NOT_FOUND_SPORT_TYPE = '존재하지 않는 스포츠타입입니다';
