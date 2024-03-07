@@ -6,8 +6,8 @@ export class TiersService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async getTiers() {
-    return this.prismaService.tier.findMany({
-      where: { sportsTypeId: 1 },
+    return await this.prismaService.tier.findMany({
+      distinct: ['value'],
       select: { value: true, description: true },
     });
   }
