@@ -1,17 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { PrismaModule } from './database/prisma/prisma.module';
-import { UsersModule } from './domains/users/users.module';
-import { JwtManagerModule } from './jwt-manager/jwt-manager.module';
-<<<<<<< Updated upstream
-import { StorageModule } from './storage/storage.module';
-=======
-import { AmazonS3Module } from './storage/amazon-s3/amazon-s3.module';
 import { MatchesModule } from './domains/matches/matches.module';
-import { APP_GUARD } from '@nestjs/core';
+import { UsersModule } from './domains/users/users.module';
 import { AuthGuard } from './guards/auth.guard';
->>>>>>> Stashed changes
+import { JwtManagerModule } from './jwt-manager/jwt-manager.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -22,15 +18,10 @@ import { AuthGuard } from './guards/auth.guard';
     PrismaModule,
     JwtManagerModule,
     UsersModule,
-<<<<<<< Updated upstream
+    MatchesModule,
     StorageModule,
   ],
   controllers: [AppController],
-=======
-    MatchesModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: AuthGuard }],
->>>>>>> Stashed changes
+  providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
 })
-export class AppModule { }
+export class AppModule {}
