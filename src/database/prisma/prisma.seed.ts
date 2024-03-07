@@ -39,8 +39,8 @@ const tiers = [
 
 async function sportTypeSeed() {
   await Promise.all(
-    sportsTypes.map((sportType) => {
-      prismaClient.sportsType.upsert({
+    sportsTypes.map(async (sportType) => {
+      await prismaClient.sportsType.upsert({
         where: { name: sportType.name },
         update: {},
         create: { name: sportType.name },
