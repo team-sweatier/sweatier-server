@@ -5,5 +5,4 @@
 
 */
 -- AlterTable
-ALTER TABLE "UserProfile" DROP COLUMN "img",
-ADD COLUMN     "nickNameUpdatedAt" TIMESTAMP(3);
+ALTER TABLE "UserProfile" DROP COLUMN "img";
