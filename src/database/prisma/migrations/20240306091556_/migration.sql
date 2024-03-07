@@ -1,0 +1,1 @@
+-- AlterTableALTER TABLE "UserProfile" ADD COLUMN     "nickNameUpdatedAt" TIMESTAMP(3);
