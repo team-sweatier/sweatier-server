@@ -49,10 +49,10 @@ export class UsersController {
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      // secure: true,
-      // sameSite: 'none',
-      // domain: this.configService.get('CLIENT_DOMAIN'),
-      // maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      secure: true,
+      sameSite: 'none',
+      domain: this.configService.get('CLIENT_DOMAIN'),
+      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
     };
   }
 

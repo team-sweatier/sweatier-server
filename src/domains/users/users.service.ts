@@ -161,7 +161,7 @@ export class UsersService {
     const now = new Date();
     const matchDayCondition = timePassed ? { lte: now } : { gt: now };
 
-    const users = await this.prismaService.user.findMany({
+    const user = await this.prismaService.user.findMany({
       where: {
         id: userId,
       },
@@ -174,6 +174,6 @@ export class UsersService {
       },
     });
 
-    return users.length > 0 ? users[0].participatingMatches : [];
+    return user.length > 0 ? user[0].participatingMatches : [];
   }
 }
