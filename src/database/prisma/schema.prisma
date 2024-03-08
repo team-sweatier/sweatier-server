@@ -36,7 +36,9 @@ model User {
   participatingMatches Match[]      @relation(name: "participantMatch")
   likedSportsTypes     SportsType[] @relation(name: "likerSportsType")
 
-  score Score[]
+  receivedScores Score[] @relation(name: "ReceivedScores")
+
+  givenScores Score[] @relation(name: "GivenScores")
 
   tiers Tier[] @relation(name: "userTier")
 
@@ -99,7 +101,11 @@ model Score {
   id String @id
 
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id], name: "ReceivedScores")
+
+  graderId String
+  grader  User   @relation(fields: [graderId], references: [id], name: "GivenScores")
+
 
   sportsTypeId Int
   sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
@@ -109,7 +115,7 @@ model Score {
 
   value Int
 
-  createdAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model SportsType {
