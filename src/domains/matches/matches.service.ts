@@ -9,8 +9,15 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { RateDto, UpdateMatchDto } from './matches.dto';
-import { ALREADY_RATED, INVALID_APPLICATION, INVALID_GENDER, INVALID_MATCH, INVALID_RATING, MAX_PARTICIPANTS_REACHED, MIN_PARTICIPANTS_REACHED, SELF_RATING, UNAUTHORIZED } from './matches-error.messages';
+import { UpdateMatchDto } from './matches.dto';
+import {
+  INVALID_APPLICATION,
+  INVALID_GENDER,
+  INVALID_MATCH,
+  MAX_PARTICIPANTS_REACHED,
+  MIN_PARTICIPANTS_REACHED,
+  UNAUTHORIZED,
+} from './matches-error.messages';
 
 @Injectable()
 export class MatchesService {
@@ -178,8 +185,8 @@ export class MatchesService {
     matchId: string,
     graderId: string,
     data: Omit<
-      Prisma.ScoreUncheckedCreateInput,
-      'id' | 'graderId' | 'sportsTypeId' | 'matchId'
+      Prisma.RatingUncheckedCreateInput,
+      'id' | 'raterId' | 'sportsTypeId' | 'matchId'
     >,
   ) {
     const match = await this.prismaService.match.findUnique({
@@ -190,11 +197,11 @@ export class MatchesService {
     });
 
     const id = nanoid(this.configService.get('NANOID_SIZE'));
-    return await this.prismaService.score.create({
+    return await this.prismaService.rating.create({
       data: {
         id: id,
         userId: data.userId,
-        graderId: graderId,
+        raterId: graderId,
         sportsTypeId: match.sportsTypeId,
         matchId: matchId,
         ...data,

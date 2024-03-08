@@ -73,7 +73,7 @@ export class MatchesController {
   @Post(':matchId/rating')
   @Private('user')
   async rateParticipants(
-    @DAccount('user') grader: User,
+    @DAccount('user') rater: User,
     @Param('matchId') matchId: string,
     @Body() dto: RateDto,
   ) {
@@ -86,7 +86,7 @@ export class MatchesController {
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
-    if (dto.userId === grader.id) {
+    if (dto.userId === rater.id) {
       throw new ConflictException(SELF_RATING);
     }
 
@@ -94,15 +94,15 @@ export class MatchesController {
       !match.participants.some(
         (participant) => participant.id === dto.userId,
       ) ||
-      !match.participants.some((participant) => participant.id === grader.id)
+      !match.participants.some((participant) => participant.id === rater.id)
     ) {
       throw new ConflictException(INVALID_RATING);
     }
 
-    const foundScore = await this.prismaService.score.findFirst({
+    const foundScore = await this.prismaService.rating.findFirst({
       where: {
         userId: dto.userId,
-        graderId: grader.id,
+        raterId: rater.id,
         matchId: matchId,
       },
     });
@@ -110,6 +110,6 @@ export class MatchesController {
     if (foundScore) {
       throw new ConflictException(ALREADY_RATED);
     }
-    return await this.matchesService.ratePlayer(matchId, grader.id, dto);
+    return await this.matchesService.ratePlayer(matchId, rater.id, dto);
   }
 }
