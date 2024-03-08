@@ -5,7 +5,7 @@ export const INVALID_PASSWORD_LENGTH = '비밀번호는 8자 이상이어야 합
 export const INVALID_PASSWORD_FORMAT =
   '비밀번호는 대소문자와 특수문자가 최소 1개 이상 존재해야합니다';
 
-export const DUPLICATE_EMAIL = '이미 존재하는 이메일 입니다';
+export const DUPLICATE_USER = '이미 존재하는 회원 입니다';
 
 export const DUPLICATE_NICKNAME = '이미 존재하는 닉네임 입니다';
 

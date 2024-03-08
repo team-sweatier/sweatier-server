@@ -42,7 +42,7 @@ model User {
 
   tiers Tier[] @relation(name: "userTier")
 
-  email             String  @unique
+  email             String? @unique
   encryptedPassword String?
 
   createdAt DateTime @default(now())
@@ -87,9 +87,9 @@ model Match {
   gender     Gender
   capability Int
 
-  latitude Float
+  latitude  Float
   longitude Float
-  address String
+  address   String
 
   matchDay DateTime
 
