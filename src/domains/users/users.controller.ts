@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   Get,
   NotFoundException,
+  Param,
   Post,
   Put,
   Req,
@@ -212,7 +213,13 @@ export class UsersController {
 
   @Private('user')
   @Get(':userId/participated-matches')
-  async getParticipatedMatches(@DAccount('user') user: User) {
+  async getParticipatedMatches(
+    @DAccount('user') user: User,
+    @Param('userId') userId: string,
+  ) {
+    if (userId !== user.id) {
+      throw new UnauthorizedException(NOT_ALLOWED_USER);
+    }
     return await this.usersService.getAppliedMatches(user.id, true);
   }
 }
