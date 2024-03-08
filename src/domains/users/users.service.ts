@@ -157,42 +157,23 @@ export class UsersService {
     return { id, email: signUpUserDto.email, encryptedPassword };
   }
 
-  async getAppliedMatches(userId: string) {
+  async getAppliedMatches(userId: string, timePassed: boolean) {
     const now = new Date();
-    const user = await this.prismaService.user.findMany({
+    const matchDayCondition = timePassed ? { lte: now } : { gt: now };
+
+    const users = await this.prismaService.user.findMany({
       where: {
         id: userId,
       },
       include: {
         participatingMatches: {
           where: {
-            matchDay: {
-              gt: now,
-            },
-          },
-        },
-      },
-    });
-    return user.length > 0 ? user[0].participatingMatches : [];
-  }
-
-  async getParticipatedMatches(userId: string) {
-    const now = new Date();
-    const user = await this.prismaService.user.findMany({
-      where: {
-        id: userId,
-      },
-      include: {
-        participatingMatches: {
-          where: {
-            matchDay: {
-              lte: now,
-            },
+            matchDay: matchDayCondition,
           },
         },
       },
     });
 
-    return user.length > 0 ? user[0].participatingMatches : [];
+    return users.length > 0 ? users[0].participatingMatches : [];
   }
 }

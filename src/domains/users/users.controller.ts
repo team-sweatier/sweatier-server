@@ -49,10 +49,10 @@ export class UsersController {
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: this.configService.get('CLIENT_DOMAIN'),
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      // secure: true,
+      // sameSite: 'none',
+      // domain: this.configService.get('CLIENT_DOMAIN'),
+      // maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
     };
   }
 
@@ -207,12 +207,12 @@ export class UsersController {
   @Private('user')
   @Get(':userId/applied-matches')
   async getAppliedMatches(@DAccount('user') user: User) {
-    return await this.usersService.getAppliedMatches(user.id);
+    return await this.usersService.getAppliedMatches(user.id, false);
   }
 
   @Private('user')
   @Get(':userId/participated-matches')
-  async getAParticipatedMatches(@DAccount('user') user: User) {
-    return await this.usersService.getParticipatedMatches(user.id);
+  async getParticipatedMatches(@DAccount('user') user: User) {
+    return await this.usersService.getAppliedMatches(user.id, true);
   }
 }
