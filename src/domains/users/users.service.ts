@@ -156,4 +156,24 @@ export class UsersService {
 
     return { id, email: signUpUserDto.email, encryptedPassword };
   }
+
+  async getAppliedMatches(userId: string, timePassed: boolean) {
+    const now = new Date();
+    const matchDayCondition = timePassed ? { lte: now } : { gt: now };
+
+    const user = await this.prismaService.user.findMany({
+      where: {
+        id: userId,
+      },
+      include: {
+        participatingMatches: {
+          where: {
+            matchDay: matchDayCondition,
+          },
+        },
+      },
+    });
+
+    return user.length > 0 ? user[0].participatingMatches : [];
+  }
 }
