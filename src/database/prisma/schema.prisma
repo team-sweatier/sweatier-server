@@ -103,8 +103,8 @@ model Score {
   userId String
   user   User   @relation(fields: [userId], references: [id], name: "ReceivedScores")
 
-  graderId String
-  grader  User   @relation(fields: [graderId], references: [id], name: "GivenScores")
+  raterId String
+  rater  User   @relation(fields: [raterId], references: [id], name: "GivenScores")
 
 
   sportsTypeId Int

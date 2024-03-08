@@ -99,7 +99,7 @@ export class MatchesController {
       throw new ConflictException(INVALID_RATING);
     }
 
-    const check = await this.prismaService.score.findFirst({
+    const foundScore = await this.prismaService.score.findFirst({
       where: {
         userId: dto.userId,
         graderId: grader.id,
@@ -107,7 +107,7 @@ export class MatchesController {
       },
     });
 
-    if (check) {
+    if (foundScore) {
       throw new ConflictException(ALREADY_RATED);
     }
     return await this.matchesService.ratePlayer(matchId, grader.id, dto);

@@ -1,5 +1,5 @@
 import { Gender } from '@prisma/client';
-import { IsEmail, IsEnum, IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import {
   INVALID_EMAIL_FORMAT,
   INVALID_PASSWORD_FORMAT,
@@ -31,40 +31,50 @@ export class SignInUserDto {
 }
 
 export class CreateProfileDto {
-  //img: FormData;
-  img: string; //임시
   @IsEnum(Gender)
   gender: Gender;
+
   @IsString()
   phoneNumber: string;
+
   @IsString()
   bankName: string;
+
   @IsString()
   accountNumber: string;
+
   @IsString()
   nickName: string;
+
   @IsString()
   oneLiner?: string;
 }
 
 export class EditProfileDto {
-  //img: FormData;
-  img: string; //임시
+  @IsOptional()
   @IsEnum(Gender)
   gender: Gender;
+
+  @IsOptional()
   @IsString()
   phoneNumber: string;
+
+  @IsOptional()
   @IsString()
   bankName: string;
+
+  @IsOptional()
   @IsString()
   accountNumber: string;
 
+  @IsOptional()
   nickName: string | undefined;
+
+  @IsOptional()
   @IsString()
   oneLiner?: string;
 }
 
 export class EditFavoriteDto {
-  // @IsString()
   sportType: string[];
 }
