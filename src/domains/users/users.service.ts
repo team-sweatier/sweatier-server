@@ -5,7 +5,7 @@ import { compare, hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
-import dayUtil from 'src/utils/day';
+import { dayUtil } from 'src/utils/day';
 import { NOT_FOUND_SPORT_TYPE } from './users-error.messages';
 import {
   CreateProfileDto,
@@ -21,7 +21,7 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async findUserById(id: string) {
     return await this.prismaService.user.findUnique({

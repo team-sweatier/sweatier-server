@@ -50,7 +50,7 @@ export class UsersController {
       secure: true,
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      // maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
     };
   }
 

@@ -23,7 +23,12 @@ import {
   SELF_RATING,
   UNAUTHORIZED,
 } from './matches-error.messages';
-import { CreateMatchDto, RateDto, UpdateMatchDto } from './matches.dto';
+import {
+  CreateMatchDto,
+  FindMatchesDto,
+  RateDto,
+  UpdateMatchDto,
+} from './matches.dto';
 import { MatchesService } from './matches.service';
 
 @Controller('matches')

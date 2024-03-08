@@ -14,10 +14,11 @@ import {
   CHOOSE_GENDER,
   CHOOSE_SPORTSTYPE,
   CHOOSE_TIER,
-  INVALID_ADDRESS,
   INVALID_CAPABILITY,
   INVALID_CONTENT,
+  INVALID_PLACENAME,
   INVALID_RATE,
+  INVALID_REGION,
   INVALID_TITLE,
 } from './matches-error.messages';
 
@@ -50,17 +51,14 @@ export class CreateMatchDto {
   longitude: number;
 
   @IsString()
-  @MinLength(5, { message: INVALID_ADDRESS })
-  address: string;
-  @MinLength(1, { message: '구장명을 입력해주세요.' })
+  @MinLength(1, { message: INVALID_PLACENAME })
   placeName: string;
 
   @IsString()
-  @MinLength(2, { message: '리전을 두글자 이상 입력해주세요.' })
+  @MinLength(2, { message: INVALID_REGION })
   region: string;
 
   @IsDateString()
-  matchDay: Date;
   matchDay: Date;
 }
 
@@ -92,10 +90,20 @@ export class UpdateMatchDto {
   @IsNotEmpty({ message: CHOOSE_TIER })
   tierId?: string;
 
+  // @IsString()
+  // @IsOptional()
+  // @MinLength(5, { message: INVALID_ADDRESS })
+  // address?: string;
+
   @IsString()
   @IsOptional()
-  @MinLength(5, { message: INVALID_ADDRESS })
-  address?: string;
+  @MinLength(1, { message: INVALID_PLACENAME })
+  placeName?: string;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(2, { message: INVALID_REGION })
+  region?: string;
 
   @IsOptional()
   @IsDateString()
@@ -122,4 +130,8 @@ export class FindMatchesDto {
   @IsOptional()
   @IsString()
   sportType?: string;
+
+  @IsOptional()
+  @IsString()
+  tier?: string;
 }
