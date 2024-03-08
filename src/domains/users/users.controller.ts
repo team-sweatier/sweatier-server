@@ -17,10 +17,12 @@ import { CookieOptions, Request, Response } from 'express';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
+import { dayUtil } from 'src/utils/day';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
   DUPLICATE_NICKNAME,
   DUPLICATE_USER,
+  INVALID_CHANGE_NICKNAME,
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
   NOT_FOUND_PROFILE,
@@ -50,7 +52,7 @@ export class UsersController {
       secure: true,
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
-      // maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
     };
   }
 
@@ -161,13 +163,13 @@ export class UsersController {
     else if (profile.userId !== user.id)
       throw new ForbiddenException(NOT_ALLOWED_USER);
 
-    // if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
-    //   const daysSinceLastUpdate = dayUtil
-    //     .day()
-    //     .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
-    //   if (daysSinceLastUpdate < 30)
-    //     throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
-    // }
+    if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
+      const daysSinceLastUpdate = dayUtil
+        .day()
+        .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
+      if (daysSinceLastUpdate < 30)
+        throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
+    }
 
     if (editProfileDto.nickName) {
       const duplicateNickname = await this.usersService.findProfileByNickname(
