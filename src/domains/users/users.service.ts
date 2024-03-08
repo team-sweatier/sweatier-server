@@ -156,4 +156,43 @@ export class UsersService {
 
     return { id, email: signUpUserDto.email, encryptedPassword };
   }
+
+  async getAppliedMatches(userId: string) {
+    const now = new Date();
+    const user = await this.prismaService.user.findMany({
+      where: {
+        id: userId,
+      },
+      include: {
+        participatingMatches: {
+          where: {
+            matchDay: {
+              gt: now,
+            },
+          },
+        },
+      },
+    });
+    return user.length > 0 ? user[0].participatingMatches : [];
+  }
+
+  async getParticipatedMatches(userId: string) {
+    const now = new Date();
+    const user = await this.prismaService.user.findMany({
+      where: {
+        id: userId,
+      },
+      include: {
+        participatingMatches: {
+          where: {
+            matchDay: {
+              lte: now,
+            },
+          },
+        },
+      },
+    });
+
+    return user.length > 0 ? user[0].participatingMatches : [];
+  }
 }
