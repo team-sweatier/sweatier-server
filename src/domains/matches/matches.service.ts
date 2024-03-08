@@ -10,7 +10,14 @@ import { Prisma, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { UpdateMatchDto } from './matches.dto';
-import { INVALID_APPLICATION, INVALID_GENDER, INVALID_MATCH, MAX_PARTICIPANTS_REACHED, MIN_PARTICIPANTS_REACHED, UNAUTHORIZED } from './matches-error.messages';
+import {
+  INVALID_APPLICATION,
+  INVALID_GENDER,
+  INVALID_MATCH,
+  MAX_PARTICIPANTS_REACHED,
+  MIN_PARTICIPANTS_REACHED,
+  UNAUTHORIZED,
+} from './matches-error.messages';
 
 @Injectable()
 export class MatchesService {
@@ -118,7 +125,13 @@ export class MatchesService {
       }
       return await this.prismaService.match.update({
         where: { id: matchId },
-        include: { participants: true },
+        include: {
+          participants: {
+            select: {
+              id: true,
+            },
+          },
+        },
         data: {
           participants: {
             disconnect: {
@@ -151,13 +164,47 @@ export class MatchesService {
 
     return await this.prismaService.match.update({
       where: { id: matchId },
-      include: { participants: true },
+      include: {
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+      },
       data: {
         participants: {
           connect: {
             id: newParticipant.id,
           },
         },
+      },
+    });
+  }
+
+  async ratePlayer(
+    matchId: string,
+    graderId: string,
+    data: Omit<
+      Prisma.RatingUncheckedCreateInput,
+      'id' | 'raterId' | 'sportsTypeId' | 'matchId'
+    >,
+  ) {
+    const match = await this.prismaService.match.findUnique({
+      where: { id: matchId },
+      include: {
+        participants: true,
+      },
+    });
+
+    const id = nanoid(this.configService.get('NANOID_SIZE'));
+    return await this.prismaService.rating.create({
+      data: {
+        id: id,
+        userId: data.userId,
+        raterId: graderId,
+        sportsTypeId: match.sportsTypeId,
+        matchId: matchId,
+        ...data,
       },
     });
   }

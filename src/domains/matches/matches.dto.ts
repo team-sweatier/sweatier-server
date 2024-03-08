@@ -6,8 +6,10 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   Min,
   MinLength,
+  min,
 } from 'class-validator';
 
 export class CreateMatchDto {
@@ -43,7 +45,7 @@ export class CreateMatchDto {
   address: string;
 
   @IsDateString()
-  matchDay: string;
+  matchDay: Date;
 }
 
 export class UpdateMatchDto {
@@ -82,4 +84,13 @@ export class UpdateMatchDto {
   @IsOptional()
   @IsDateString()
   matchDay?: Date;
+}
+
+export class RateDto {
+  @IsString()
+  userId: string;
+
+  @Max(5, { message: '별점은 1점부터 5점까지 매길 수 있습니다.' })
+  @Min(1, { message: '별점은 1점부터 5점까지 매길 수 있습니다.' })
+  value: number;
 }
