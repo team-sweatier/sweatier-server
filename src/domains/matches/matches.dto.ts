@@ -9,29 +9,38 @@ import {
   Max,
   Min,
   MinLength,
-  min,
 } from 'class-validator';
+import {
+  CHOOSE_GENDER,
+  CHOOSE_SPORTSTYPE,
+  CHOOSE_TIER,
+  INVALID_ADDRESS,
+  INVALID_CAPABILITY,
+  INVALID_CONTENT,
+  INVALID_RATE,
+  INVALID_TITLE,
+} from './matches-error.messages';
 
 export class CreateMatchDto {
   @IsString()
-  @MinLength(5, { message: '제목은 다섯글자 이상 입력해주세요' })
+  @MinLength(5, { message: INVALID_TITLE })
   title: string;
 
   @IsString()
-  @MinLength(10, { message: '내용은 열글자 이상 입력해주세요' })
+  @MinLength(10, { message: INVALID_CONTENT })
   content: string;
 
-  @IsEnum(Gender, { message: '성별을 선택해주세요.' })
+  @IsEnum(Gender, { message: CHOOSE_GENDER })
   gender: Gender;
 
   @IsNumber()
-  @Min(2, { message: '모집 인원을 두 명 이상 입력해주세요.' })
+  @Min(2, { message: INVALID_CAPABILITY })
   capability: number;
 
-  @IsNotEmpty({ message: '종목을 설정해주세요' })
+  @IsNotEmpty({ message: CHOOSE_SPORTSTYPE })
   sportsTypeId: number;
 
-  @IsNotEmpty({ message: '티어를 설정해주세요' })
+  @IsNotEmpty({ message: CHOOSE_TIER })
   tierId: string;
 
   @IsNumber()
@@ -41,7 +50,7 @@ export class CreateMatchDto {
   longitude: number;
 
   @IsString()
-  @MinLength(1, { message: '주소를 입력해주세요.' })
+  @MinLength(5, { message: INVALID_ADDRESS })
   address: string;
 
   @IsDateString()
@@ -51,34 +60,34 @@ export class CreateMatchDto {
 export class UpdateMatchDto {
   @IsString()
   @IsOptional()
-  @MinLength(5, { message: '제목은 다섯글자 이상 입력해주세요' })
+  @MinLength(5, { message: INVALID_TITLE })
   title?: string;
 
   @IsString()
   @IsOptional()
-  @MinLength(10, { message: '내용은 열글자 이상 입력해주세요' })
+  @MinLength(10, { message: INVALID_CONTENT })
   content?: string;
 
   @IsOptional()
-  @IsEnum(Gender, { message: '성별을 선택해주세요.' })
+  @IsEnum(Gender, { message: CHOOSE_GENDER })
   gender?: Gender;
 
   @IsNumber()
   @IsOptional()
-  @Min(2, { message: '모집 인원을 두 명 이상 입력해주세요.' })
+  @Min(2, { message: INVALID_CAPABILITY })
   capability?: number;
 
   @IsOptional()
-  @IsNotEmpty({ message: '종목을 설정해주세요' })
+  @IsNotEmpty({ message: CHOOSE_SPORTSTYPE })
   sportsTypeId?: number;
 
   @IsOptional()
-  @IsNotEmpty({ message: '티어를 설정해주세요' })
+  @IsNotEmpty({ message: CHOOSE_TIER })
   tierId?: string;
 
   @IsString()
   @IsOptional()
-  @MinLength(5, { message: '주소를 입력해주세요.' })
+  @MinLength(5, { message: INVALID_ADDRESS })
   address?: string;
 
   @IsOptional()
@@ -90,7 +99,7 @@ export class RateDto {
   @IsString()
   userId: string;
 
-  @Max(5, { message: '별점은 1점부터 5점까지 매길 수 있습니다.' })
-  @Min(1, { message: '별점은 1점부터 5점까지 매길 수 있습니다.' })
+  @Max(5, { message: INVALID_RATE })
+  @Min(1, { message: INVALID_RATE })
   value: number;
 }

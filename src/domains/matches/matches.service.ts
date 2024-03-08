@@ -16,6 +16,7 @@ import {
   INVALID_MATCH,
   MAX_PARTICIPANTS_REACHED,
   MIN_PARTICIPANTS_REACHED,
+  PROFILE_NEEDED,
   UNAUTHORIZED,
 } from './matches-error.messages';
 
@@ -31,13 +32,6 @@ export class MatchesService {
   }
 
   async findMatch(matchId: string) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-    });
-
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
     return this.prismaService.match.findUnique({
       where: {
         id: matchId,
@@ -70,15 +64,6 @@ export class MatchesService {
   }
 
   async editMatch(userId: string, matchId: string, data: UpdateMatchDto) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-    });
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
-    if (match.hostId !== userId) {
-      throw new ForbiddenException(UNAUTHORIZED);
-    }
     return await this.prismaService.match.update({
       where: { id: matchId },
       data,
@@ -86,16 +71,6 @@ export class MatchesService {
   }
 
   async deleteMatch(userId: string, matchId: string) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-    });
-
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
-    if (match.hostId !== userId) {
-      throw new ForbiddenException(UNAUTHORIZED);
-    }
     return await this.prismaService.match.delete({
       where: {
         id: matchId,
@@ -110,10 +85,6 @@ export class MatchesService {
         participants: true,
       },
     });
-
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
 
     const isParticipating = match.participants.some(
       (participant) => participant.id === userId,
@@ -145,6 +116,10 @@ export class MatchesService {
     const user = await this.prismaService.userProfile.findUnique({
       where: { userId: userId },
     });
+
+    if (!user) {
+      throw new UnauthorizedException(PROFILE_NEEDED);
+    }
 
     if (match.hostId === user.userId) {
       throw new UnauthorizedException(INVALID_APPLICATION);

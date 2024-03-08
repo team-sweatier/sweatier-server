@@ -21,7 +21,7 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async findUserById(id: string) {
     return await this.prismaService.user.findUnique({
@@ -127,11 +127,10 @@ export class UsersService {
   async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {
     const sportsTypes = await this.prismaService.sportsType.findMany({
       where: {
-        name: { in: editFavoriteDto.sportType },
+        name: { in: editFavoriteDto.sportsType },
       },
     });
-
-    if (sportsTypes.length !== editFavoriteDto.sportType.length) {
+    if (sportsTypes.length !== editFavoriteDto.sportsType.length) {
       //DTO 의 스포츠 타입이 DB의 스포츠 타입 시드데이터에 다 일치하게 존재하는지 검사
       throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
     } else {
