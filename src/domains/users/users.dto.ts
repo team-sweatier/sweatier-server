@@ -10,6 +10,18 @@ import {
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]+$/;
 
+export class SignUpKakaoUserDto {
+  constructor(id: string) {
+    this.id = id;
+    this.email = 'kakao-account';
+  }
+
+  @IsString()
+  id: string;
+
+  email: string;
+}
+
 export class SignUpUserDto {
   @IsEmail({}, { message: INVALID_EMAIL_FORMAT })
   email: string;
