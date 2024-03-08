@@ -88,5 +88,5 @@ export class EditProfileDto {
 }
 
 export class EditFavoriteDto {
-  sportType: string[];
+  sportsType: string[];
 }

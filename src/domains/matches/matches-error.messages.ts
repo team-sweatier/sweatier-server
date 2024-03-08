@@ -22,3 +22,5 @@ export const SELF_RATING = '자신은 평가할 수 없습니다.';
 export const INVALID_RATING = '평가할 수 없는 유저입니다.';
 
 export const ALREADY_RATED = '이미 평가한 유저입니다.';
+
+export const PROFILE_NEEDED = '프로필을 생성해주세요.';
