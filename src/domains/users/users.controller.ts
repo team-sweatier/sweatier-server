@@ -7,16 +7,21 @@ import {
   NotFoundException,
   Post,
   Put,
+  Req,
+  Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
+import { CookieOptions, Request, Response } from 'express';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import dayUtil from 'src/utils/day';
+import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
-  DUPLICATE_EMAIL,
   DUPLICATE_NICKNAME,
+  DUPLICATE_USER,
   INVALID_CHANGE_NICKNAME,
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
@@ -27,24 +32,40 @@ import {
   EditFavoriteDto,
   EditProfileDto,
   SignInUserDto,
+  SignUpKakaoUserDto,
   SignUpUserDto,
 } from './users.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
+  private readonly cookieOptions: CookieOptions;
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtManagerService: JwtManagerService,
-  ) {}
+    private readonly kakaoAuthService: KakaoAuthService,
+    private readonly configService: ConfigService,
+  ) {
+    this.cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      domain: this.configService.get('CLIENT_DOMAIN'),
+      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+    };
+  }
 
   @Post('sign-up')
-  async signUp(@Body() signUpDto: SignUpUserDto) {
+  async signUp(
+    @Body() signUpDto: SignUpUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const duplicateEmail = await this.usersService.findUserByEmail(
       signUpDto.email,
     );
 
-    if (duplicateEmail) throw new ConflictException(DUPLICATE_EMAIL);
+    if (duplicateEmail) throw new ConflictException(DUPLICATE_USER);
 
     const user = await this.usersService.createUser(signUpDto);
 
@@ -53,11 +74,16 @@ export class UsersController {
       email: user.email,
     });
 
+    response.cookie('accessToken', accessToken, this.cookieOptions);
+
     return { accessToken };
   }
 
   @Post('sign-in')
-  async signIn(@Body() signInDto: SignInUserDto) {
+  async signIn(
+    @Body() signInDto: SignInUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const foundUser = await this.usersService.findUserByEmail(signInDto.email);
 
     const validate = await this.usersService.validateUsersCredential(
@@ -71,6 +97,36 @@ export class UsersController {
       id: foundUser.id,
       email: foundUser.email,
     });
+
+    response.cookie('accessToken', accessToken, this.cookieOptions);
+
+    return { accessToken };
+  }
+
+  @Get('sign-in/kakao')
+  async signInKakao(@Res({ passthrough: true }) res: Response) {
+    return res.redirect(this.kakaoAuthService.getKakaoAuthUrl());
+  }
+
+  @Get('sign-in/kakao/callback')
+  async signInKakaoCallback(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const id = await this.kakaoAuthService.getKakaoUsersId(
+      request.query.code as string,
+    );
+
+    const user = await this.usersService.createUser(
+      new SignUpKakaoUserDto(id as string),
+    );
+
+    const accessToken = this.jwtManagerService.sign('user', {
+      id: user.id,
+      email: user.email,
+    });
+
+    response.cookie('accessToken', accessToken, this.cookieOptions);
 
     return { accessToken };
   }

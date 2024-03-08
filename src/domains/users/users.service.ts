@@ -12,6 +12,7 @@ import {
   EditFavoriteDto,
   EditProfileDto,
   SignInUserDto,
+  SignUpKakaoUserDto,
   SignUpUserDto,
 } from './users.dto';
 
@@ -21,6 +22,12 @@ export class UsersService {
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
   ) {}
+
+  async findUserById(id: string) {
+    return await this.prismaService.user.findUnique({
+      where: { id },
+    });
+  }
 
   async findUserByEmail(userEmail: string) {
     return await this.prismaService.user.findUnique({
@@ -62,14 +69,7 @@ export class UsersService {
     });
   }
 
-  async createUser(signUpUserDto: SignUpUserDto) {
-    const id = nanoid(this.configService.get('NANOID_SIZE'));
-
-    const encryptedPassword = await hash(
-      signUpUserDto.password,
-      parseInt(this.configService.get('HASH_SALT')),
-    );
-
+  async createUser(signUpUserDto: SignUpUserDto | SignUpKakaoUserDto) {
     const beginnerTiers = await this.prismaService.tier.findMany({
       where: { value: 'beginner' },
     });
@@ -78,11 +78,16 @@ export class UsersService {
       id: tier.id,
     }));
 
-    const newUser = await this.prismaService.user.create({
-      data: {
-        id,
-        email: signUpUserDto.email,
-        encryptedPassword: encryptedPassword,
+    const signUpUserData =
+      signUpUserDto instanceof SignUpKakaoUserDto
+        ? { id: signUpUserDto.id }
+        : await this.signUpUserData(signUpUserDto);
+
+    const newUser = await this.prismaService.user.upsert({
+      where: { id: signUpUserData.id },
+      update: {},
+      create: {
+        ...signUpUserData,
         tiers: {
           connect: connectTiers,
         },
@@ -140,5 +145,16 @@ export class UsersService {
       });
       return sportsTypes;
     }
+  }
+
+  private async signUpUserData(signUpUserDto: SignUpUserDto) {
+    const id = nanoid(this.configService.get('NANOID_SIZE'));
+
+    const encryptedPassword = await hash(
+      signUpUserDto.password,
+      parseInt(this.configService.get('HASH_SALT')),
+    );
+
+    return { id, email: signUpUserDto.email, encryptedPassword };
   }
 }
