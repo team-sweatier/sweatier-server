@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+<<<<<<< Updated upstream
 import { UpdateMatchDto } from './matches.dto';
 import {
   INVALID_APPLICATION,
@@ -19,16 +20,71 @@ import {
   PROFILE_NEEDED,
   UNAUTHORIZED,
 } from './matches-error.messages';
+=======
+import dayUtil from 'src/utils/day';
+import { INVALID_MATCH, UNAUTHORIZED } from './matches-error.messages';
+import { FindMatchesDto, UpdateMatchDto } from './matches.dto';
+>>>>>>> Stashed changes
 
 @Injectable()
 export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
 
+<<<<<<< Updated upstream
   async findMatches() {
     return await this.prismaService.match.findMany();
+=======
+  async findMatches(filters: FindMatchesDto) {
+    const todayUTC = dayUtil.day().utc();
+    const endDateUTC = todayUTC.add(2, 'weeks');
+
+    let where: Prisma.MatchWhereInput = {
+      matchDay: {
+        gte: todayUTC.toDate(),
+        lte: endDateUTC.toDate(),
+      },
+    };
+
+    console.log(todayUTC.toDate());
+    console.log(endDateUTC.toDate());
+
+    // if (filters.date) {
+    //   const parsedDate = dayUtil.day(filters.date).toDate();
+    //   console.log(parsedDate);
+
+    //   const kstMatchDay = dayUtil.day(parsedDate).toISOString();
+    //   console.log(kstMatchDay);
+    //   // const date = dayUtil.day(filters.date).format();
+    //   // console.log(today.format());
+    //   // console.log(date);
+    //   where.matchDay = kstMatchDay;
+    // }
+
+    // if (filters.region) {
+    //   where.matchDay < endDateUTC;
+    //   where.placeName = filters.region;
+    // }
+
+    if (filters.sportType) {
+      where = {
+        ...where,
+        sportsType: {
+          name: filters.sportType,
+        },
+      };
+    }
+
+    return this.prismaService.match.findMany({
+      where: {
+        sportsType: {
+          name: filters.sportType,
+        },
+      },
+    });
+>>>>>>> Stashed changes
   }
 
   async findMatch(matchId: string) {

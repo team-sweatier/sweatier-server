@@ -52,8 +52,15 @@ export class CreateMatchDto {
   @IsString()
   @MinLength(5, { message: INVALID_ADDRESS })
   address: string;
+  @MinLength(1, { message: '구장명을 입력해주세요.' })
+  placeName: string;
+
+  @IsString()
+  @MinLength(2, { message: '리전을 두글자 이상 입력해주세요.' })
+  region: string;
 
   @IsDateString()
+  matchDay: Date;
   matchDay: Date;
 }
 
@@ -102,4 +109,17 @@ export class RateDto {
   @Max(5, { message: INVALID_RATE })
   @Min(1, { message: INVALID_RATE })
   value: number;
+}
+export class FindMatchesDto {
+  @IsOptional()
+  @IsString()
+  date?: string;
+
+  @IsOptional()
+  @IsString()
+  region?: string;
+
+  @IsOptional()
+  @IsString()
+  sportType?: string;
 }

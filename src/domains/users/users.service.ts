@@ -63,7 +63,11 @@ export class UsersService {
       where: { id: userId },
       select: {
         tiers: {
-          select: { value: true, sportType: { select: { name: true } } },
+          select: {
+            id: true,
+            value: true,
+            sportType: { select: { id: true, name: true } },
+          },
         },
       },
     });
@@ -114,6 +118,7 @@ export class UsersService {
       ...editProfileDto,
       ...(isNicknameUpdated && {
         nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
+        // nickNameUpdatedAt: day().add(30, 'day').toDate(),
       }),
     };
 
