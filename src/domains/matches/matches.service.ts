@@ -1,42 +1,90 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { UpdateMatchDto } from './matches.dto';
+import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
 import {
   INVALID_APPLICATION,
   INVALID_GENDER,
-  INVALID_MATCH,
   MAX_PARTICIPANTS_REACHED,
   MIN_PARTICIPANTS_REACHED,
   PROFILE_NEEDED,
-  UNAUTHORIZED,
 } from './matches-error.messages';
+import { FindMatchesDto, UpdateMatchDto } from './matches.dto';
 
 @Injectable()
 export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
 
-  async findMatches() {
-    return await this.prismaService.match.findMany();
+  async findMatches(filters: FindMatchesDto) {
+    const todayUTC = dayUtil.day().utc();
+    const endDateUTC = todayUTC.add(2, 'weeks');
+
+    const where: Prisma.MatchWhereInput = {
+      matchDay: {
+        gte: todayUTC.toDate(),
+        lte: endDateUTC.toDate(),
+      },
+    };
+
+    if (filters.date) {
+      const parsedDate = dayUtil.day(filters.date);
+      const nextDate = parsedDate.add(1, 'day');
+      console.log(parsedDate.toDate());
+      console.log(nextDate.toDate());
+
+      where.matchDay = { gte: parsedDate.toDate(), lt: nextDate.toDate() };
+    }
+
+    if (filters.region) {
+      where.region = filters.region;
+    }
+
+    if (filters.sportType) {
+      where.sportsType = {
+        name: filters.sportType,
+      };
+    }
+
+    if (filters.tier) {
+      where.tier = {
+        value: filters.tier,
+      };
+    }
+
+    let matches = await this.prismaService.match.findMany({
+      where: where,
+    });
+    matches = matches.map((match) => ({
+      ...match,
+      matchDay: new Date(
+        match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
+      ),
+    }));
+    return matches;
   }
 
   async findMatch(matchId: string) {
-    return this.prismaService.match.findUnique({
+    let match = await this.prismaService.match.findUnique({
       where: {
         id: matchId,
       },
     });
+    match = {
+      ...match,
+      matchDay: new Date(
+        match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
+      ),
+    };
+    return match;
   }
 
   async createMatch(

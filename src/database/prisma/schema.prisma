@@ -89,7 +89,9 @@ model Match {
 
   latitude  Float
   longitude Float
-  address   String
+
+  placeName String
+  region    String
 
   matchDay DateTime
 
@@ -104,8 +106,7 @@ model Rating {
   user   User   @relation(fields: [userId], references: [id], name: "Evaluatee")
 
   raterId String
-  rater  User   @relation(fields: [raterId], references: [id], name: "Evaluator")
-
+  rater   User   @relation(fields: [raterId], references: [id], name: "Evaluator")
 
   sportsTypeId Int
   sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
@@ -122,10 +123,10 @@ model SportsType {
   id   Int    @id @default(autoincrement())
   name String @unique
 
-  rate  Rating[]
+  rate   Rating[]
   tier   Tier[]
   match  Match[]
-  likers User[]  @relation(name: "likerSportsType")
+  likers User[]   @relation(name: "likerSportsType")
 }
 
 enum Gender {

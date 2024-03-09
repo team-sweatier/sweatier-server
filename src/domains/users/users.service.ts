@@ -5,7 +5,7 @@ import { compare, hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
-import dayUtil from 'src/utils/day';
+import { dayUtil } from 'src/utils/day';
 import { NOT_FOUND_SPORT_TYPE } from './users-error.messages';
 import {
   CreateProfileDto,
@@ -21,7 +21,7 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async findUserById(id: string) {
     return await this.prismaService.user.findUnique({
@@ -63,7 +63,11 @@ export class UsersService {
       where: { id: userId },
       select: {
         tiers: {
-          select: { value: true, sportType: { select: { name: true } } },
+          select: {
+            id: true,
+            value: true,
+            sportType: { select: { id: true, name: true } },
+          },
         },
       },
     });
@@ -114,6 +118,7 @@ export class UsersService {
       ...editProfileDto,
       ...(isNicknameUpdated && {
         nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
+        // nickNameUpdatedAt: day().add(30, 'day').toDate(),
       }),
     };
 

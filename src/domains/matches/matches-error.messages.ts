@@ -37,6 +37,8 @@ export const CHOOSE_SPORTSTYPE = '종목을 설정해주세요.';
 
 export const CHOOSE_TIER = '티어를 설정해주세요.';
 
-export const INVALID_ADDRESS = '주소를 입력해주세요.';
+export const INVALID_PLACENAME = '구장명을 입력해주세요.';
+
+export const INVALID_REGION = '리전을 두글자 이상 입력해주세요.';
 
 export const INVALID_RATE = '별점은 1점부터 5점까지 매길 수 있습니다.';

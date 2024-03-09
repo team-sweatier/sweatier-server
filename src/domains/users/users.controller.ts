@@ -18,7 +18,7 @@ import { CookieOptions, Request, Response } from 'express';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
-import dayUtil from 'src/utils/day';
+import { dayUtil } from 'src/utils/day';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
   DUPLICATE_NICKNAME,

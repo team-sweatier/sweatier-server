@@ -8,7 +8,9 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.tz.setDefault('Asia/Seoul');
 
-const dayUtil = {
+export const KST_OFFSET_HOURS = 9;
+
+export const dayUtil = {
   day: (...args: Parameters<typeof dayjs>) => {
     return dayjs(...args);
   },
@@ -18,5 +20,3 @@ const dayUtil = {
       .toDate();
   },
 };
-
-export default dayUtil;

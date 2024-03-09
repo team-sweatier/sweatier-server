@@ -1,33 +1,46 @@
 import {
-  Controller,
-  Get,
-  Param,
-  Delete,
-  Post,
   Body,
-  Put,
-  NotFoundException,
   ConflictException,
+  Controller,
+  Delete,
   ForbiddenException,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  Query,
 } from '@nestjs/common';
-import { MatchesService } from './matches.service';
 import { User } from '@prisma/client';
-import { CreateMatchDto, RateDto, UpdateMatchDto } from './matches.dto';
-import { Private } from 'src/decorators/private.decorator';
-import { DAccount } from 'src/decorators/account.decorator';
-import { ALREADY_RATED, INVALID_APPLICATION, INVALID_MATCH, INVALID_RATING, SELF_RATING, UNAUTHORIZED } from './matches-error.messages';
 import { PrismaService } from 'src/database/prisma/prisma.service';
+import { DAccount } from 'src/decorators/account.decorator';
+import { Private } from 'src/decorators/private.decorator';
+import {
+  ALREADY_RATED,
+  INVALID_APPLICATION,
+  INVALID_MATCH,
+  INVALID_RATING,
+  SELF_RATING,
+  UNAUTHORIZED,
+} from './matches-error.messages';
+import {
+  CreateMatchDto,
+  FindMatchesDto,
+  RateDto,
+  UpdateMatchDto,
+} from './matches.dto';
+import { MatchesService } from './matches.service';
 
 @Controller('matches')
 export class MatchesController {
   constructor(
     private readonly matchesService: MatchesService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
 
   @Get()
-  async findMatches() {
-    return await this.matchesService.findMatches();
+  async findMatches(@Query() filters: FindMatchesDto) {
+    return await this.matchesService.findMatches(filters);
   }
 
   @Get(':matchId')
@@ -104,7 +117,7 @@ export class MatchesController {
     }
 
     if (match.hostId === user.id) {
-      throw new ConflictException(INVALID_APPLICATION)
+      throw new ConflictException(INVALID_APPLICATION);
     }
     return await this.matchesService.participate(matchId, user.id);
   }
