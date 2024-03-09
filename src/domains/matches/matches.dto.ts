@@ -90,11 +90,6 @@ export class UpdateMatchDto {
   @IsNotEmpty({ message: CHOOSE_TIER })
   tierId?: string;
 
-  // @IsString()
-  // @IsOptional()
-  // @MinLength(5, { message: INVALID_ADDRESS })
-  // address?: string;
-
   @IsString()
   @IsOptional()
   @MinLength(1, { message: INVALID_PLACENAME })
