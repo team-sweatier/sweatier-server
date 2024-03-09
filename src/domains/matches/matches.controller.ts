@@ -77,7 +77,7 @@ export class MatchesController {
     if (match.hostId !== user.id) {
       throw new ForbiddenException(UNAUTHORIZED);
     }
-    return await this.matchesService.editMatch(user.id, matchId, dto);
+    return await this.matchesService.editMatch(matchId, dto);
   }
 
   @Delete(':matchId')
@@ -96,7 +96,7 @@ export class MatchesController {
     if (match.hostId !== user.id) {
       throw new ForbiddenException(UNAUTHORIZED);
     }
-    return await this.matchesService.deleteMatch(user.id, matchId);
+    return await this.matchesService.deleteMatch(matchId);
   }
 
   @Put(':matchId/participate')

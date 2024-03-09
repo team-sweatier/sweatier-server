@@ -53,7 +53,7 @@ export class UsersController {
       secure: true,
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      // maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
     };
   }
 
@@ -206,39 +206,23 @@ export class UsersController {
   }
 
   @Private('user')
-  @Get(':userId/applied-matches')
-  async getAppliedMatches(
-    @DAccount('user') user: User,
-    @Param('userId') userId: string,
-  ) {
-    if (userId !== user.id) {
-      throw new UnauthorizedException(NOT_ALLOWED_USER);
-    }
+  @Get('/applied-matches')
+  async getAppliedMatches(@DAccount('user') user: User) {
     return await this.usersService.getAppliedMatches(user.id, false);
   }
 
   @Private('user')
-  @Get(':userId/participated-matches')
-  async getParticipatedMatches(
-    @DAccount('user') user: User,
-    @Param('userId') userId: string,
-  ) {
-    if (userId !== user.id) {
-      throw new UnauthorizedException(NOT_ALLOWED_USER);
-    }
+  @Get('/participated-matches')
+  async getParticipatedMatches(@DAccount('user') user: User) {
     return await this.usersService.getAppliedMatches(user.id, true);
   }
 
   @Private('user')
-  @Get(':userId/:matchId/rates')
+  @Get('/:matchId/rates')
   async getUserMatchRates(
     @DAccount('user') user: User,
     @Param('matchId') matchId: string,
-    @Param('userId') userId: string,
   ) {
-    if (userId !== user.id) {
-      throw new UnauthorizedException(NOT_ALLOWED_USER);
-    }
     return await this.usersService.getUserMatchRates(user.id, matchId);
   }
 }

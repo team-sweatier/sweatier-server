@@ -117,14 +117,14 @@ export class MatchesService {
     });
   }
 
-  async editMatch(userId: string, matchId: string, data: UpdateMatchDto) {
+  async editMatch(matchId: string, data: UpdateMatchDto) {
     return await this.prismaService.match.update({
       where: { id: matchId },
       data,
     });
   }
 
-  async deleteMatch(userId: string, matchId: string) {
+  async deleteMatch(matchId: string) {
     return await this.prismaService.match.delete({
       where: {
         id: matchId,
