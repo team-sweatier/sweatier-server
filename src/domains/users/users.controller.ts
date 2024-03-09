@@ -228,4 +228,17 @@ export class UsersController {
     }
     return await this.usersService.getAppliedMatches(user.id, true);
   }
+
+  @Private('user')
+  @Get(':userId/:matchId/rates')
+  async getUserMatchRates(
+    @DAccount('user') user: User,
+    @Param('matchId') matchId: string,
+    @Param('userId') userId: string,
+  ) {
+    if (userId !== user.id) {
+      throw new UnauthorizedException(NOT_ALLOWED_USER);
+    }
+    return await this.usersService.getUserMatchRates(user.id, matchId);
+  }
 }

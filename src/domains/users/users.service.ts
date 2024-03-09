@@ -176,4 +176,17 @@ export class UsersService {
 
     return user.length > 0 ? user[0].participatingMatches : [];
   }
+
+  async getUserMatchRates(userId: string, matchId: string) {
+    const values = await this.prismaService.rating.findMany({
+      where: {
+        userId: userId,
+        matchId: matchId,
+      },
+      select: {
+        value: true,
+      },
+    });
+    return values.length > 0 ? values : [];
+  }
 }

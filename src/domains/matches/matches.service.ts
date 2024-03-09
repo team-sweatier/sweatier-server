@@ -59,7 +59,13 @@ export class MatchesService {
 
     return await this.prismaService.match.findUnique({
       where: { id: id },
-      include: { participants: true },
+      include: {
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+      },
     });
   }
 
