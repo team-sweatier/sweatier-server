@@ -43,6 +43,11 @@ export class MatchesController {
     return await this.matchesService.findMatches(filters);
   }
 
+  @Get('/search')
+  async findMatchesByKeywords(@Query('keywords') keywords: string) {
+    return await this.matchesService.findMatchesByKeywords(keywords);
+  }
+
   @Get(':matchId')
   async findMatch(@Param('matchId') matchId: string) {
     const match = await this.prismaService.match.findUnique({

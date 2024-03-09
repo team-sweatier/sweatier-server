@@ -72,6 +72,33 @@ export class MatchesService {
     return matches;
   }
 
+  async findMatchesByKeywords(keywords: string) {
+    const search = keywords
+      .split(' ')
+      .filter((keyword) => keyword.trim() !== '')
+      .map((keyword) => `${keyword.trim()}:*`)
+      .join(' & ');
+
+    const matches = await this.prismaService.match.findMany({
+      where: {
+        OR: [
+          {
+            title: {
+              search,
+            },
+          },
+          {
+            content: {
+              search,
+            },
+          },
+        ],
+      },
+    });
+
+    return matches;
+  }
+
   async findMatch(matchId: string) {
     let match = await this.prismaService.match.findUnique({
       where: {
