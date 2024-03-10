@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -27,6 +28,7 @@ import {
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
   NOT_FOUND_PROFILE,
+  PROFILE_EXISTS,
 } from './users-error.messages';
 import {
   CreateProfileDto,
@@ -37,6 +39,7 @@ import {
   SignUpUserDto,
 } from './users.dto';
 import { UsersService } from './users.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Controller('users')
 export class UsersController {
@@ -47,12 +50,13 @@ export class UsersController {
     private readonly jwtManagerService: JwtManagerService,
     private readonly kakaoAuthService: KakaoAuthService,
     private readonly configService: ConfigService,
+    private readonly prismaService: PrismaService,
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: this.configService.get('CLIENT_DOMAIN'),
+      // secure: true,
+      // sameSite: 'none',
+      // domain: this.configService.get('CLIENT_DOMAIN'),
       // maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
     };
   }
@@ -87,6 +91,9 @@ export class UsersController {
   ) {
     const foundUser = await this.usersService.findUserByEmail(signInDto.email);
 
+    if (!foundUser) {
+      throw new NotFoundException(INVALID_USER_CREDENTIAL);
+    }
     const validate = await this.usersService.validateUsersCredential(
       foundUser,
       signInDto,
@@ -138,6 +145,13 @@ export class UsersController {
     @Body() createProfileDto: CreateProfileDto,
     @DAccount('user') user: User,
   ) {
+    const foundProfile = this.prismaService.userProfile.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (foundProfile) {
+      throw new BadRequestException(PROFILE_EXISTS);
+    }
     const duplicateNickname = await this.usersService.findProfileByNickname(
       createProfileDto.nickName,
     );
@@ -150,6 +164,12 @@ export class UsersController {
     );
 
     return profile;
+  }
+
+  @Private('user')
+  @Get('Profile')
+  async getProfile(@DAccount('user') user: User) {
+    return await this.usersService.findProfileByUserId(user.id);
   }
 
   @Private('user')

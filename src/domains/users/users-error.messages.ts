@@ -20,3 +20,13 @@ export const INVALID_CHANGE_NICKNAME =
   '닉네임은 30일에 한번씩 바꿀 수 있습니다';
 
 export const NOT_FOUND_SPORT_TYPE = '존재하지 않는 스포츠타입입니다';
+
+export const GENDER_TYPE_NEEDED = '성별을 확인해주세요.';
+
+export const PHONE_NUMBER_NEEDED = '연락처를 확인해주세요.';
+
+export const BANK_INFO_NEEDED = '계좌를 확인해주세요.';
+
+export const INVALID_NICKNAME = '닉네임은 두 글자 이상 입력해주세요.';
+
+export const PROFILE_EXISTS = '이미 프로필이 존재하는 사용자입니다.';
