@@ -23,7 +23,9 @@ import { dayUtil } from 'src/utils/day';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
   DUPLICATE_NICKNAME,
+  DUPLICATE_PHONENUMBER,
   DUPLICATE_USER,
+  FOUND_PROFILE,
   INVALID_CHANGE_NICKNAME,
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
@@ -50,14 +52,13 @@ export class UsersController {
     private readonly jwtManagerService: JwtManagerService,
     private readonly kakaoAuthService: KakaoAuthService,
     private readonly configService: ConfigService,
-    private readonly prismaService: PrismaService,
   ) {
     this.cookieOptions = {
       httpOnly: true,
       secure: true,
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      //      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
     };
   }
 
@@ -145,13 +146,16 @@ export class UsersController {
     @Body() createProfileDto: CreateProfileDto,
     @DAccount('user') user: User,
   ) {
-    const foundProfile = this.prismaService.userProfile.findUnique({
-      where: { userId: user.id },
-    });
+    const foundProfile = await this.usersService.findProfileByUserId(user.id);
 
-    if (foundProfile) {
-      throw new BadRequestException(PROFILE_EXISTS);
-    }
+    if (foundProfile) throw new NotFoundException(FOUND_PROFILE);
+
+    const duplicatePhoneNumber = await this.usersService.findProfileByPhoneNumber(
+      createProfileDto.phoneNumber,
+    )
+
+    if (duplicatePhoneNumber) throw new ConflictException(DUPLICATE_PHONENUMBER);
+
     const duplicateNickname = await this.usersService.findProfileByNickname(
       createProfileDto.nickName,
     );
@@ -190,6 +194,15 @@ export class UsersController {
         .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
       if (daysSinceLastUpdate < 30)
         throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
+    }
+
+    if (editProfileDto.phoneNumber) {
+      const duplicatePhoneNumber = await this.usersService.findProfileByPhoneNumber(
+        editProfileDto.phoneNumber,
+      );
+      if (duplicatePhoneNumber) {
+        throw new ConflictException(DUPLICATE_PHONENUMBER);
+      }
     }
 
     if (editProfileDto.nickName) {

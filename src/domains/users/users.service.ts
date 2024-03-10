@@ -41,6 +41,12 @@ export class UsersService {
     });
   }
 
+  async findProfileByPhoneNumber(userPhoneNumber: string) {
+    return await this.prismaService.userProfile.findUnique({
+      where: { phoneNumber: userPhoneNumber },
+    });
+  }
+
   async findProfileByUserId(userId: string) {
     return await this.prismaService.userProfile.findUnique({
       where: { userId },
