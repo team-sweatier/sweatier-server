@@ -22,7 +22,7 @@ export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
 
   async findMatches(filters: FindMatchesDto) {
     const todayUTC = dayUtil.day().utc();

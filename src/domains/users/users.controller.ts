@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -33,7 +32,6 @@ import {
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
   NOT_FOUND_PROFILE,
-  PROFILE_EXISTS,
 } from './users-error.messages';
 import {
   CreateProfileDto,
@@ -44,7 +42,6 @@ import {
   SignUpUserDto,
 } from './users.dto';
 import { UsersService } from './users.service';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Controller('users')
 export class UsersController {
@@ -147,6 +144,22 @@ export class UsersController {
   }
 
   @Private('user')
+  @Get('refresh')
+  async refresh(
+    @DAccount('user') user: User,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const accessToken = this.jwtManagerService.sign('user', {
+      id: user.id,
+      email: user.email,
+    });
+
+    response.cookie('accessToken', accessToken, this.cookieOptions);
+
+    return { accessToken };
+  }
+
+  @Private('user')
   @Post('profile')
   @UseInterceptors(FileInterceptor('file'))
   async createProfile(
@@ -158,11 +171,13 @@ export class UsersController {
 
     if (foundProfile) throw new NotFoundException(FOUND_PROFILE);
 
-    const duplicatePhoneNumber = await this.usersService.findProfileByPhoneNumber(
-      createProfileDto.phoneNumber,
-    )
+    const duplicatePhoneNumber =
+      await this.usersService.findProfileByPhoneNumber(
+        createProfileDto.phoneNumber,
+      );
 
-    if (duplicatePhoneNumber) throw new ConflictException(DUPLICATE_PHONENUMBER);
+    if (duplicatePhoneNumber)
+      throw new ConflictException(DUPLICATE_PHONENUMBER);
 
     const duplicateNickname = await this.usersService.findProfileByNickname(
       createProfileDto.nickName,
@@ -180,7 +195,7 @@ export class UsersController {
   }
 
   @Private('user')
-  @Get('Profile')
+  @Get('profile')
   async getProfile(@DAccount('user') user: User) {
     return await this.usersService.findProfileByUserId(user.id);
   }
@@ -208,9 +223,10 @@ export class UsersController {
     }
 
     if (editProfileDto.phoneNumber) {
-      const duplicatePhoneNumber = await this.usersService.findProfileByPhoneNumber(
-        editProfileDto.phoneNumber,
-      );
+      const duplicatePhoneNumber =
+        await this.usersService.findProfileByPhoneNumber(
+          editProfileDto.phoneNumber,
+        );
       if (duplicatePhoneNumber) {
         throw new ConflictException(DUPLICATE_PHONENUMBER);
       }
