@@ -1,9 +1,13 @@
 import { Gender } from '@prisma/client';
 import { IsEmail, IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import {
+  BANK_INFO_NEEDED,
+  GENDER_TYPE_NEEDED,
   INVALID_EMAIL_FORMAT,
+  INVALID_NICKNAME,
   INVALID_PASSWORD_FORMAT,
   INVALID_PASSWORD_LENGTH,
+  PHONE_NUMBER_NEEDED,
 } from './users-error.messages';
 
 // 대문자,소문자, 특수문자 각 1개이상씩 있는지 검사
@@ -36,26 +40,29 @@ export class SignInUserDto {
   @IsEmail({}, { message: INVALID_EMAIL_FORMAT })
   email: string;
 
-  @MinLength(8, { message: INVALID_PASSWORD_LENGTH })
   @Matches(passwordRegex, { message: INVALID_PASSWORD_FORMAT })
   @IsString()
   password: string;
 }
 
 export class CreateProfileDto {
-  @IsEnum(Gender)
+  @IsEnum(Gender, { message: GENDER_TYPE_NEEDED })
   gender: Gender;
 
-  @IsString()
+  @IsString({ message: PHONE_NUMBER_NEEDED })
+  @MinLength(11, { message: PHONE_NUMBER_NEEDED })
   phoneNumber: string;
 
-  @IsString()
+  @IsString({ message: BANK_INFO_NEEDED })
+  @MinLength(2, { message: BANK_INFO_NEEDED })
   bankName: string;
 
-  @IsString()
+  @IsString({ message: BANK_INFO_NEEDED })
+  @MinLength(8, { message: BANK_INFO_NEEDED })
   accountNumber: string;
 
-  @IsString()
+  @IsString({ message: INVALID_NICKNAME })
+  @MinLength(2, { message: INVALID_NICKNAME })
   nickName: string;
 
   @IsString()
@@ -64,19 +71,22 @@ export class CreateProfileDto {
 
 export class EditProfileDto {
   @IsOptional()
-  @IsEnum(Gender)
+  @IsEnum(Gender, { message: GENDER_TYPE_NEEDED })
   gender: Gender;
 
   @IsOptional()
   @IsString()
+  @MinLength(11, { message: PHONE_NUMBER_NEEDED })
   phoneNumber: string;
 
   @IsOptional()
   @IsString()
+  @MinLength(2, { message: BANK_INFO_NEEDED })
   bankName: string;
 
   @IsOptional()
   @IsString()
+  @MinLength(8, { message: BANK_INFO_NEEDED })
   accountNumber: string;
 
   @IsOptional()

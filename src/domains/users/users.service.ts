@@ -50,8 +50,6 @@ export class UsersService {
   }
 
   async validateUsersCredential(user: User, signInDto: SignInUserDto) {
-    if (!user) throw false;
-
     const passwordMatch = await compare(
       signInDto.password,
       user.encryptedPassword,
@@ -153,6 +151,10 @@ export class UsersService {
         name: { in: editFavoriteDto.sportsType },
       },
     });
+
+    if (!sportsTypes) {
+      console.log(2);
+    }
     if (sportsTypes.length !== editFavoriteDto.sportsType.length) {
       //DTO 의 스포츠 타입이 DB의 스포츠 타입 시드데이터에 다 일치하게 존재하는지 검사
       throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
