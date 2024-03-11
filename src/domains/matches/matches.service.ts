@@ -22,7 +22,7 @@ export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) {}
+  ) { }
 
   async findMatches(filters: FindMatchesDto) {
     const todayUTC = dayUtil.day().utc();
@@ -67,6 +67,7 @@ export class MatchesService {
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
     }));
+
     return matches;
   }
 
@@ -98,18 +99,35 @@ export class MatchesService {
   }
 
   async findMatch(matchId: string) {
-    let match = await this.prismaService.match.findUnique({
+    const match = await this.prismaService.match.findUnique({
       where: {
         id: matchId,
       },
+      include: {
+        participants: {
+          select: {
+            id: true,
+          },
+        },
+      },
     });
-    match = {
+
+    if (!match) {
+      throw new Error('Match not found');
+    }
+
+    const result: {
+      applicants: number;
+      matchDay: Date;
+    } & typeof match = {
       ...match,
+      applicants: match.participants.length,
       matchDay: new Date(
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
     };
-    return match;
+
+    return result;
   }
 
   async createMatch(

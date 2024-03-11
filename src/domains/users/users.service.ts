@@ -43,6 +43,12 @@ export class UsersService {
     });
   }
 
+  async findProfileByPhoneNumber(userPhoneNumber: string) {
+    return await this.prismaService.userProfile.findUnique({
+      where: { phoneNumber: userPhoneNumber },
+    });
+  }
+
   async findProfileByUserId(userId: string) {
     return await this.prismaService.userProfile.findUnique({
       where: { userId },
@@ -152,9 +158,6 @@ export class UsersService {
       },
     });
 
-    if (!sportsTypes) {
-      console.log(2);
-    }
     if (sportsTypes.length !== editFavoriteDto.sportsType.length) {
       //DTO 의 스포츠 타입이 DB의 스포츠 타입 시드데이터에 다 일치하게 존재하는지 검사
       throw new NotFoundException(NOT_FOUND_SPORT_TYPE);

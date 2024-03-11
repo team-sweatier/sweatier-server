@@ -26,7 +26,9 @@ import { dayUtil } from 'src/utils/day';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
   DUPLICATE_NICKNAME,
+  DUPLICATE_PHONENUMBER,
   DUPLICATE_USER,
+  FOUND_PROFILE,
   INVALID_CHANGE_NICKNAME,
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
@@ -53,7 +55,6 @@ export class UsersController {
     private readonly jwtManagerService: JwtManagerService,
     private readonly kakaoAuthService: KakaoAuthService,
     private readonly configService: ConfigService,
-    private readonly prismaService: PrismaService,
   ) {
     this.cookieOptions = {
       ...(this.configService.get('NODE_ENV') === 'production' && {
@@ -153,13 +154,16 @@ export class UsersController {
     @DAccount('user') user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const foundProfile = this.prismaService.userProfile.findUnique({
-      where: { userId: user.id },
-    });
+    const foundProfile = await this.usersService.findProfileByUserId(user.id);
 
-    if (foundProfile) {
-      throw new BadRequestException(PROFILE_EXISTS);
-    }
+    if (foundProfile) throw new NotFoundException(FOUND_PROFILE);
+
+    const duplicatePhoneNumber = await this.usersService.findProfileByPhoneNumber(
+      createProfileDto.phoneNumber,
+    )
+
+    if (duplicatePhoneNumber) throw new ConflictException(DUPLICATE_PHONENUMBER);
+
     const duplicateNickname = await this.usersService.findProfileByNickname(
       createProfileDto.nickName,
     );
@@ -201,6 +205,15 @@ export class UsersController {
         .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
       if (daysSinceLastUpdate < 30)
         throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
+    }
+
+    if (editProfileDto.phoneNumber) {
+      const duplicatePhoneNumber = await this.usersService.findProfileByPhoneNumber(
+        editProfileDto.phoneNumber,
+      );
+      if (duplicatePhoneNumber) {
+        throw new ConflictException(DUPLICATE_PHONENUMBER);
+      }
     }
 
     if (editProfileDto.nickName) {
