@@ -8,13 +8,13 @@ import {
   Param,
   Post,
   Put,
-  Req,
+  Query,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
@@ -49,8 +49,8 @@ export class UsersController {
     private readonly configService: ConfigService,
   ) {
     this.cookieOptions = {
-      httpOnly: true,
       ...(this.configService.get('NODE_ENV') === 'production' && {
+        httpOnly: true,
         secure: true,
         sameSite: 'none',
         domain: this.configService.get('CLIENT_DOMAIN'),
@@ -107,31 +107,32 @@ export class UsersController {
   }
 
   @Get('sign-in/kakao')
-  async signInKakao(@Res({ passthrough: true }) res: Response) {
-    return res.redirect(this.kakaoAuthService.getKakaoAuthUrl());
+  async signInKakao(@Res() response: Response) {
+    response.redirect(this.kakaoAuthService.getKakaoAuthUrl());
   }
 
   @Get('sign-in/kakao/callback')
   async signInKakaoCallback(
-    @Req() request: Request,
+    @Query('code') code: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const id = await this.kakaoAuthService.getKakaoUsersId(
-      request.query.code as string,
-    );
+    try {
+      const id = await this.kakaoAuthService.getKakaoUsersId(code);
 
-    const user = await this.usersService.createUser(
-      new SignUpKakaoUserDto(id as string),
-    );
+      const user = await this.usersService.createUser(
+        new SignUpKakaoUserDto(id as string),
+      );
 
-    const accessToken = this.jwtManagerService.sign('user', {
-      id: user.id,
-      email: user.email,
-    });
+      const accessToken = this.jwtManagerService.sign('user', {
+        id: user.id,
+        email: user.email,
+      });
 
-    response.cookie('accessToken', accessToken, this.cookieOptions);
-
-    return { accessToken };
+      response.cookie('accessToken', accessToken, this.cookieOptions);
+      return { accessToken };
+    } catch (error) {
+      throw new UnauthorizedException('인증에 실패했습니다.');
+    }
   }
 
   @Private('user')

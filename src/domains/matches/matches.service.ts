@@ -38,8 +38,6 @@ export class MatchesService {
     if (filters.date) {
       const parsedDate = dayUtil.day(filters.date);
       const nextDate = parsedDate.add(1, 'day');
-      console.log(parsedDate.toDate());
-      console.log(nextDate.toDate());
 
       where.matchDay = { gte: parsedDate.toDate(), lt: nextDate.toDate() };
     }
