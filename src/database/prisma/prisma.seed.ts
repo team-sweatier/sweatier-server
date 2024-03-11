@@ -1,8 +1,21 @@
 import { ConfigService } from '@nestjs/config';
-import { PrismaClient } from '@prisma/client';
 import { nanoid } from 'nanoid';
+import {
+  getRandomAccountNumber,
+  getRandomBankName,
+  getRandomEmail,
+  getRandomGender,
+  getRandomMatchDay,
+  getRandomNickName,
+  getRandomPhoneNumber,
+  getRandomSports,
+  getRandomSportsTypeId,
+  getRandomTier,
+  getRandomUserTier,
+} from './getRandomData';
+import { PrismaService } from './prisma.service';
 
-const prismaClient = new PrismaClient();
+const prismaService = new PrismaService();
 const configService = new ConfigService();
 
 const sportsTypes = [
@@ -40,7 +53,7 @@ const tiers = [
 async function sportTypeSeed() {
   await Promise.all(
     sportsTypes.map(async (sportType) => {
-      await prismaClient.sportsType.upsert({
+      await prismaService.sportsType.upsert({
         where: { name: sportType.name },
         update: {},
         create: { name: sportType.name },
@@ -50,11 +63,11 @@ async function sportTypeSeed() {
 }
 
 async function tierSeed() {
-  const allSportsTypes = await prismaClient.sportsType.findMany();
+  const allSportsTypes = await prismaService.sportsType.findMany();
   for (const sportType of allSportsTypes) {
     await Promise.all(
       tiers.map(async (tier) => {
-        const result = await prismaClient.tier.upsert({
+        const result = await prismaService.tier.upsert({
           where: {
             value_sportsTypeId: {
               value: tier.value,
@@ -74,32 +87,85 @@ async function tierSeed() {
     );
   }
 }
+
+async function userSeed() {
+  const testId = nanoid(configService.get('NANOID_SIZE'));
+  const email = getRandomEmail();
+
+  const randomTiers = await getRandomUserTier();
+  const connectTiers = randomTiers.map((tier) => ({
+    id: tier.id,
+  }));
+
+  const user = await prismaService.user.upsert({
+    where: { email },
+    update: {},
+    create: {
+      id: testId,
+      email,
+      encryptedPassword: 'testPassword!',
+      tiers: {
+        connect: connectTiers,
+      },
+    },
+  });
+  console.log(user);
+
+  const userProfile = await prismaService.userProfile.upsert({
+    where: { userId: testId },
+    update: {},
+    create: {
+      userId: testId,
+      gender: getRandomGender(),
+      phoneNumber: getRandomPhoneNumber(),
+      nickName: getRandomNickName(),
+      bankName: getRandomBankName(),
+      accountNumber: getRandomAccountNumber(),
+    },
+  });
+  console.log(userProfile);
+  return userProfile;
+}
+
+async function matchSeed(hostId: string) {
+  const sportsTypeId = await getRandomSportsTypeId();
+
+  const { title, content, capability, latitude, longitude, placeName, region } =
+    getRandomSports(sportsTypeId);
+  const tierId = await getRandomTier(sportsTypeId, hostId);
+  const match = await prismaService.match.create({
+    data: {
+      id: nanoid(configService.get('NANOID_SIZE')),
+      hostId: hostId,
+      participants: {
+        connect: {
+          id: hostId,
+        },
+      },
+      sportsTypeId,
+      tierId,
+      title,
+      content,
+      gender: getRandomGender(),
+      capability,
+      latitude,
+      longitude,
+      placeName,
+      region,
+      matchDay: new Date(getRandomMatchDay()),
+    },
+  });
+  console.log(match);
+  return match;
+}
+
 async function seed() {
   await sportTypeSeed().then(tierSeed);
+  for (let i = 0; i < 5; i++) {
+    const user = await userSeed();
+    for (let j = 0; j < 3; j++) {
+      await matchSeed(user.userId);
+    }
+  }
 }
 seed();
-//   for (const sportType of sportsTypes) {
-//     await prismaClient.sportsType.upsert({
-//       where: { name: sportType.name },
-//       update: {},
-//       create: { name: sportType.name },
-//     });
-//   }
-//   const allSportsTypes = await prismaClient.sportsType.findMany();
-
-//   for (const tier of tiers) {
-//     for (const sportType of allSportsTypes) {
-//       await prismaClient.tier.upsert({
-//         where: { value: tier.value },
-//         update: {},
-//         create: {
-//           id: nanoid(configService.get('NANOID_SIZE')),
-//           value: tier.value,
-//           description: tier.description,
-//           sportsTypeId: sportType.id,
-//         },
-//       });
-//     }
-//   }
-// }
-// seed();
