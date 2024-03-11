@@ -144,7 +144,7 @@ export class UsersController {
   }
 
   @Private('user')
-  @Get('refresh')
+  @Get('refresh-token')
   async refresh(
     @DAccount('user') user: User,
     @Res({ passthrough: true }) response: Response,
