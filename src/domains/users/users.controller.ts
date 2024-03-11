@@ -11,8 +11,11 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '@prisma/client';
 import { CookieOptions, Request, Response } from 'express';
 import { DAccount } from 'src/decorators/account.decorator';
@@ -134,9 +137,11 @@ export class UsersController {
 
   @Private('user')
   @Post('profile')
+  @UseInterceptors(FileInterceptor('file'))
   async createProfile(
     @Body() createProfileDto: CreateProfileDto,
     @DAccount('user') user: User,
+    @UploadedFile() file: Express.Multer.File,
   ) {
     const duplicateNickname = await this.usersService.findProfileByNickname(
       createProfileDto.nickName,
@@ -147,6 +152,7 @@ export class UsersController {
     const profile = await this.usersService.createProfile(
       user.id,
       createProfileDto,
+      file,
     );
 
     return profile;
@@ -154,9 +160,11 @@ export class UsersController {
 
   @Private('user')
   @Put('profile')
+  @UseInterceptors(FileInterceptor('file'))
   async editProfile(
     @Body() editProfileDto: EditProfileDto,
     @DAccount('user') user: User,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const profile = await this.usersService.findProfileByUserId(user.id);
 
@@ -184,6 +192,7 @@ export class UsersController {
     const editedProfile = await this.usersService.editProfile(
       user.id,
       editProfileDto,
+      file,
     );
 
     return editedProfile;

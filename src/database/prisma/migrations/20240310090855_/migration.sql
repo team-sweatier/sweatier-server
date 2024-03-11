@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Match" ALTER COLUMN "createdAt" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "createdAt" DROP DEFAULT;
