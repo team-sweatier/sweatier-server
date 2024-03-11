@@ -5,6 +5,7 @@ import { compare, hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
+import { StorageService } from 'src/storage/storage.service';
 import { dayUtil } from 'src/utils/day';
 import { NOT_FOUND_SPORT_TYPE } from './users-error.messages';
 import {
@@ -21,7 +22,8 @@ export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
-  ) { }
+    private readonly storageService: StorageService,
+  ) {}
 
   async findUserById(id: string) {
     return await this.prismaService.user.findUnique({
@@ -99,24 +101,40 @@ export class UsersService {
     return newUser;
   }
 
-  async createProfile(userId: string, createProfileDto: CreateProfileDto) {
+  async createProfile(
+    userId: string,
+    createProfileDto: CreateProfileDto,
+    file?: Express.Multer.File,
+  ) {
+    let imageUrl: string | undefined;
+    if (file) {
+      imageUrl = await this.storageService.uploadImage(userId, file);
+    }
     const profile = await this.prismaService.userProfile.create({
       data: {
         userId,
         ...createProfileDto,
       },
     });
-    return profile;
+    return { profile, imageUrl };
   }
 
-  async editProfile(userId: string, editProfileDto: EditProfileDto) {
+  async editProfile(
+    userId: string,
+    editProfileDto: EditProfileDto,
+    file?: Express.Multer.File,
+  ) {
     const isNicknameUpdated = editProfileDto.nickName !== undefined;
+
+    let imageUrl: string | undefined;
+    if (file) {
+      imageUrl = await this.storageService.uploadImage(userId, file);
+    }
 
     const data = {
       ...editProfileDto,
       ...(isNicknameUpdated && {
         nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
-        // nickNameUpdatedAt: day().add(30, 'day').toDate(),
       }),
     };
 
@@ -124,7 +142,7 @@ export class UsersService {
       where: { userId },
       data,
     });
-    return editedProfile;
+    return { editedProfile, imageUrl };
   }
 
   async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {
@@ -161,7 +179,11 @@ export class UsersService {
       parseInt(this.configService.get('HASH_SALT')),
     );
 
-    return { id, email: signUpUserDto.email, encryptedPassword };
+    return {
+      id,
+      email: signUpUserDto.email,
+      encryptedPassword,
+    };
   }
 
   async getAppliedMatches(userId: string, timePassed: boolean) {

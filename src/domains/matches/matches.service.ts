@@ -38,8 +38,6 @@ export class MatchesService {
     if (filters.date) {
       const parsedDate = dayUtil.day(filters.date);
       const nextDate = parsedDate.add(1, 'day');
-      console.log(parsedDate.toDate());
-      console.log(nextDate.toDate());
 
       where.matchDay = { gte: parsedDate.toDate(), lt: nextDate.toDate() };
     }
@@ -69,6 +67,33 @@ export class MatchesService {
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
     }));
+    return matches;
+  }
+
+  async findMatchesByKeywords(keywords: string) {
+    const search = keywords
+      .split(' ')
+      .filter((keyword) => keyword.trim() !== '')
+      .map((keyword) => `${keyword.trim()}:*`)
+      .join(' & ');
+
+    const matches = await this.prismaService.match.findMany({
+      where: {
+        OR: [
+          {
+            title: {
+              search,
+            },
+          },
+          {
+            content: {
+              search,
+            },
+          },
+        ],
+      },
+    });
+
     return matches;
   }
 

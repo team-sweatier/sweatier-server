@@ -9,13 +9,16 @@ import {
   Param,
   Post,
   Put,
-  Req,
+  Query,
   Res,
   UnauthorizedException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '@prisma/client';
-import { CookieOptions, Request, Response } from 'express';
+import { CookieOptions, Response } from 'express';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
@@ -53,11 +56,13 @@ export class UsersController {
     private readonly prismaService: PrismaService,
   ) {
     this.cookieOptions = {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: this.configService.get('CLIENT_DOMAIN'),
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      ...(this.configService.get('NODE_ENV') === 'production' && {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: this.configService.get('CLIENT_DOMAIN'),
+        maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      }),
     };
   }
 
@@ -112,38 +117,41 @@ export class UsersController {
   }
 
   @Get('sign-in/kakao')
-  async signInKakao(@Res({ passthrough: true }) res: Response) {
-    return res.redirect(this.kakaoAuthService.getKakaoAuthUrl());
+  async signInKakao(@Res() response: Response) {
+    response.redirect(this.kakaoAuthService.getKakaoAuthUrl());
   }
 
   @Get('sign-in/kakao/callback')
   async signInKakaoCallback(
-    @Req() request: Request,
+    @Query('code') code: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const id = await this.kakaoAuthService.getKakaoUsersId(
-      request.query.code as string,
-    );
+    try {
+      const id = await this.kakaoAuthService.getKakaoUsersId(code);
 
-    const user = await this.usersService.createUser(
-      new SignUpKakaoUserDto(id as string),
-    );
+      const user = await this.usersService.createUser(
+        new SignUpKakaoUserDto(id as string),
+      );
 
-    const accessToken = this.jwtManagerService.sign('user', {
-      id: user.id,
-      email: user.email,
-    });
+      const accessToken = this.jwtManagerService.sign('user', {
+        id: user.id,
+        email: user.email,
+      });
 
-    response.cookie('accessToken', accessToken, this.cookieOptions);
-
-    return { accessToken };
+      response.cookie('accessToken', accessToken, this.cookieOptions);
+      return { accessToken };
+    } catch (error) {
+      throw new UnauthorizedException('인증에 실패했습니다.');
+    }
   }
 
   @Private('user')
   @Post('profile')
+  @UseInterceptors(FileInterceptor('file'))
   async createProfile(
     @Body() createProfileDto: CreateProfileDto,
     @DAccount('user') user: User,
+    @UploadedFile() file: Express.Multer.File,
   ) {
     const foundProfile = this.prismaService.userProfile.findUnique({
       where: { userId: user.id },
@@ -161,6 +169,7 @@ export class UsersController {
     const profile = await this.usersService.createProfile(
       user.id,
       createProfileDto,
+      file,
     );
 
     return profile;
@@ -174,9 +183,11 @@ export class UsersController {
 
   @Private('user')
   @Put('profile')
+  @UseInterceptors(FileInterceptor('file'))
   async editProfile(
     @Body() editProfileDto: EditProfileDto,
     @DAccount('user') user: User,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     const profile = await this.usersService.findProfileByUserId(user.id);
 
@@ -204,6 +215,7 @@ export class UsersController {
     const editedProfile = await this.usersService.editProfile(
       user.id,
       editProfileDto,
+      file,
     );
 
     return editedProfile;
