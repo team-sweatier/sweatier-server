@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, Rating, Tier, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -28,7 +28,7 @@ export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
 
   async findMatches(filters: FindMatchesDto, userId?: string) {
     if (userId)
@@ -96,28 +96,33 @@ export class MatchesService {
   async findMatchesByKeywords(keywords: string) {
     const search = keywords
       .split(' ')
-      .filter((keyword) => keyword.trim() !== '')
-      .map((keyword) => `${keyword.trim()}:*`)
+      .filter((keyword) => keyword)
+      .map((keyword) => `${keyword}:*`)
       .join(' & ');
+
+    const [todayUTC, endDateUTC] = [
+      dayUtil.day().utc(),
+      dayUtil.day().utc().add(2, 'weeks'),
+    ];
 
     const matches = await this.prismaService.match.findMany({
       where: {
-        OR: [
-          {
-            title: {
-              search,
-            },
-          },
-          {
-            content: {
-              search,
-            },
-          },
-        ],
+        matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+        OR: [{ title: { search } }, { content: { search } }],
+      },
+      include: {
+        participants: { select: { id: true } },
+        tier: { select: { value: true } },
+        sportsType: { select: { name: true } },
       },
     });
 
-    return matches;
+    return matches.map((match) => ({
+      ...match,
+      applicants: match.participants.length,
+      tier: match.tier.value,
+      sportsType: match.sportsType.name,
+    }));
   }
 
   async findMatch(matchId: string) {
@@ -129,6 +134,7 @@ export class MatchesService {
         participants: {
           select: {
             id: true,
+            userProfile: { select: { nickName: true } },
           },
         },
         tier: {
@@ -153,6 +159,14 @@ export class MatchesService {
     const tier = match.tier.value;
     const sport = match.sportsType.name;
 
+    const matchResult = {
+      ...match,
+      participate: match.participants.map((participant) => ({
+        id: participant.id,
+        nickName: participant.userProfile.nickName,
+      })),
+    };
+
     const result: {
       address: string;
       hostId: string;
@@ -165,7 +179,7 @@ export class MatchesService {
       tierType: string;
       sportType: string;
     } & typeof match = {
-      ...match,
+      ...matchResult,
       address: match.address,
       hostId: host.userId,
       hostNickname: host.nickName,
