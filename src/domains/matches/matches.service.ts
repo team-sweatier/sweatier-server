@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, Rating, Tier, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -15,7 +15,13 @@ import {
   MIN_PARTICIPANTS_REACHED,
   PROFILE_NEEDED,
 } from './matches-error.messages';
-import { FindMatchesDto, UpdateMatchDto } from './matches.dto';
+
+import {
+  CreateMatchDto,
+  FindMatchesDto,
+  ParticipantRating,
+  UpdateMatchDto,
+} from './matches.dto';
 
 @Injectable()
 export class MatchesService {
@@ -92,28 +98,33 @@ export class MatchesService {
   async findMatchesByKeywords(keywords: string) {
     const search = keywords
       .split(' ')
-      .filter((keyword) => keyword.trim() !== '')
-      .map((keyword) => `${keyword.trim()}:*`)
+      .filter((keyword) => keyword)
+      .map((keyword) => `${keyword}:*`)
       .join(' & ');
+
+    const [todayUTC, endDateUTC] = [
+      dayUtil.day().utc(),
+      dayUtil.day().utc().add(2, 'weeks'),
+    ];
 
     const matches = await this.prismaService.match.findMany({
       where: {
-        OR: [
-          {
-            title: {
-              search,
-            },
-          },
-          {
-            content: {
-              search,
-            },
-          },
-        ],
+        matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+        OR: [{ title: { search } }, { content: { search } }],
+      },
+      include: {
+        participants: { select: { id: true } },
+        tier: { select: { value: true } },
+        sportsType: { select: { name: true } },
       },
     });
 
-    return matches;
+    return matches.map((match) => ({
+      ...match,
+      applicants: match.participants.length,
+      tier: match.tier.value,
+      sportsType: match.sportsType.name,
+    }));
   }
 
   async findMatch(matchId: string, userId: string) {
@@ -125,6 +136,7 @@ export class MatchesService {
         participants: {
           select: {
             id: true,
+            userProfile: { select: { nickName: true } },
           },
         },
         tier: {
@@ -145,28 +157,25 @@ export class MatchesService {
         userId: match.hostId,
       },
     });
-
-    const tier = match.tier.value;
-    const sport = match.sportsType.name;
     const participating = match.participants.find(
       (participant) => participant.id === userId,
     )
       ? true
       : false;
-    const result: {
-      address: string;
-      hostId: string;
-      hostNickname: string;
-      hostOneLiner: string | null;
-      hostBankName: string;
-      hostAccountNumber: string;
-      applicants: number;
-      matchDay: Date;
-      tierType: string;
-      sportType: string;
-      participating: boolean;
-    } & typeof match = {
+
+    const tier = match.tier.value;
+    const sport = match.sportsType.name;
+
+    const matchResult = {
       ...match,
+      participate: match.participants.map((participant) => ({
+        id: participant.id,
+        nickName: participant.userProfile.nickName,
+      })),
+    };
+
+    const result = {
+      ...matchResult,
       address: match.address,
       hostId: host.userId,
       hostNickname: host.nickName,
@@ -185,34 +194,39 @@ export class MatchesService {
     return result;
   }
 
-  async createMatch(
-    user: User,
-    data: Omit<Prisma.MatchUncheckedCreateInput, 'id' | 'hostId' | 'spo'>,
-  ) {
+  async createMatch(userId: string, data: CreateMatchDto) {
+    const { sportsTypeName, ...matchData } = data;
     const id = nanoid(this.configService.get('NANOID_SIZE'));
-    await this.prismaService.match.create({
+    const foundUser = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: { tiers: true },
+    });
+    const sportType = await this.prismaService.sportsType.findUnique({
+      where: { name: sportsTypeName },
+    });
+    const tier = foundUser.tiers.find(
+      (tier) => tier.sportsTypeId === sportType.id,
+    );
+
+    const match = await this.prismaService.match.create({
       data: {
-        ...data,
+        ...matchData,
         id,
-        hostId: user.id,
+        hostId: userId,
+        sportsTypeId: sportType.id,
+        tierId: tier.id,
         participants: {
           connect: {
-            id: user.id,
+            id: userId,
           },
         },
       },
-    });
-
-    return await this.prismaService.match.findUnique({
-      where: { id: id },
-      include: {
-        participants: {
-          select: {
-            id: true,
-          },
-        },
+      select: {
+        id: true,
+        hostId: true,
       },
     });
+    return match;
   }
 
   async editMatch(matchId: string, data: UpdateMatchDto) {
@@ -304,6 +318,18 @@ export class MatchesService {
             id: newParticipant.id,
           },
         },
+      },
+    });
+  }
+  async ratePlayer(matchId: string, raterId: string, data: ParticipantRating) {
+    const id = nanoid(this.configService.get('NANOID_SIZE'));
+    return await this.prismaService.rating.create({
+      data: {
+        id: id,
+        matchId,
+        raterId,
+        userId: data.participantId,
+        value: data.value,
       },
     });
   }
