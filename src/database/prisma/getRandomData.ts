@@ -87,6 +87,26 @@ const sportsCapabilities = {
   5: [10, 12, 14, 16, 18, 20, 22],
 };
 
+const oneLiners = [
+  '매너 있게 플레이합시다!',
+  '같은 취미를 가진 사람들과 만나고 싶어요.',
+  '주말 아침 축구 게임에 참여해요. 같이 뛰어봐요!',
+  '정정당당한 경기를 원해요.',
+  '초보라서... 조금만 봐주세요!',
+  '성장하는 모습을 보고 싶어요.',
+  '퇴근 후 저녁에 주로 플레이해요!',
+  '비슷한 실력의 상대와 경기하고 싶어요.',
+  '스포츠로 새로운 친구를 만들고 싶어요.',
+  '퇴근 후 저녁에 주로 농구해요!',
+  '함께 운동하면서 즐길 사람 찾아요!',
+  '배드민턴 칠 파트너 구합니다. 초보 환영!',
+  '운동으로 스트레스 풀고 싶어요. 동참하실 분?',
+  '실력 향상, 함께 목표해요.',
+  '함께 땀 흘리며 즐겨요!',
+  '건강도 챙기고 새 친구도 만들고 싶어요!',
+  '테니스 좋아하는 사람 여기 모여라!',
+];
+
 function getRandomIndex(length: number): number {
   return Math.floor(Math.random() * length);
 }
@@ -126,7 +146,15 @@ export function getRandomPhoneNumber() {
 }
 
 export function getRandomNickName() {
-  return faker.person.fullName();
+  return faker.person.firstName();
+}
+
+export function getRandomImg() {
+  return faker.image.avatar();
+}
+
+export function getRandomOneLiner() {
+  return oneLiners[getRandomIndex(oneLiners.length)];
 }
 
 export function getRandomBankName() {
@@ -147,7 +175,7 @@ export function getRandomMatchDay() {
   const startDate = new Date(2024, 1, 15);
   const endDate = new Date(2024, 3, 1);
 
-  const randomDate = faker.date.between(startDate, endDate);
+  const randomDate = faker.date.between({ from: startDate, to: endDate });
 
   return randomDate;
 }
@@ -211,7 +239,7 @@ export async function getRandomMatches(hostId) {
   return { sportsTypeId, tier, ...matchData };
 }
 
-export async function getRandomRating() {
+export function getRandomRating() {
   const rating = [1, 2, 3, 4, 5];
   return rating[getRandomIndex(rating.length)];
 }

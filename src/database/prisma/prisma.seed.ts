@@ -1,14 +1,20 @@
 import { ConfigService } from '@nestjs/config';
 import { UserProfile } from '@prisma/client';
+import axios from 'axios';
+import { hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
+import { GCSService } from '../../storage/google/gcs.service';
 import {
   getRandomAccountNumber,
   getRandomBankName,
   getRandomEmail,
   getRandomGender,
+  getRandomImg,
   getRandomMatchDay,
   getRandomNickName,
+  getRandomOneLiner,
   getRandomPhoneNumber,
+  getRandomRating,
   getRandomSports,
   getRandomSportsTypeId,
   getRandomTier,
@@ -18,6 +24,7 @@ import { PrismaService } from './prisma.service';
 
 const prismaService = new PrismaService();
 const configService = new ConfigService();
+const storageService = new GCSService(configService);
 
 const sportsTypes = [
   { name: 'tennis' },
@@ -91,6 +98,11 @@ async function tierSeed() {
 async function userSeed() {
   const testId = nanoid(configService.get('NANOID_SIZE'));
   const email = getRandomEmail();
+  const password = 'testPassword!';
+  const encryptedPassword = await hash(
+    password,
+    parseInt(configService.get('HASH_SALT')),
+  );
 
   const randomTiers = await getRandomUserTier();
   const connectTiers = randomTiers.map((tier) => ({
@@ -103,7 +115,7 @@ async function userSeed() {
     create: {
       id: testId,
       email,
-      encryptedPassword: 'testPassword!',
+      encryptedPassword,
       tiers: {
         connect: connectTiers,
       },
@@ -121,9 +133,25 @@ async function userSeed() {
       nickName: getRandomNickName(),
       bankName: getRandomBankName(),
       accountNumber: getRandomAccountNumber(),
+      oneLiner: getRandomOneLiner(),
     },
   });
-  console.log(userProfile);
+
+  const randomImageUrl = getRandomImg();
+
+  const randomImageBuffer: Buffer = await axios
+    .get<ArrayBuffer>(randomImageUrl, {
+      responseType: 'arraybuffer',
+    })
+    .then((response) => Buffer.from(response.data));
+
+  const imageFile: Parameters<typeof storageService.uploadImage>[1] = {
+    buffer: randomImageBuffer,
+    originalname: `${randomImageUrl}`,
+  };
+  const imgUpload = await storageService.uploadImage(testId, imageFile);
+  console.log(imgUpload);
+
   return userProfile;
 }
 
@@ -217,9 +245,37 @@ async function participateSeed(userId) {
  * 2.참가자 1명이 나머지 참가자 전부 평가
  * 3.
  */
-// async function ratingSeed() {
+async function ratingSeed() {
+  const currentDate = new Date();
+  currentDate.setDate(currentDate.getDate() - 1);
+  const yesterday = new Date(currentDate);
+  const matches = await prismaService.match.findMany({
+    include: { participants: true, rate: true },
+    where: { matchDay: { lt: yesterday } },
+  });
+  for (const match of matches) {
+    for (const rater of match.participants) {
+      for (const participant of match.participants) {
+        const raterId = rater.id;
+        const userId = participant.id;
 
-// }
+        if (raterId !== userId) {
+          const rating = await prismaService.rating.create({
+            data: {
+              id: nanoid(configService.get('NANOID_SIZE')),
+              userId,
+              raterId,
+              sportsTypeId: match.sportsTypeId,
+              matchId: match.id,
+              value: getRandomRating(),
+            },
+          });
+          console.log(rating);
+        }
+      }
+    }
+  }
+}
 
 async function seed() {
   const userArray: UserProfile[] = [];
@@ -234,5 +290,6 @@ async function seed() {
   for (let k = 0; k < userArray.length; k++) {
     await participateSeed(userArray[k].userId);
   }
+  ratingSeed();
 }
 seed();
