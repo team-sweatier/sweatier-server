@@ -93,6 +93,7 @@ model Match {
 
   placeName String
   region    String
+  address   String
 
   matchDay DateTime
 
@@ -109,9 +110,6 @@ model Rating {
   raterId String
   rater   User   @relation(fields: [raterId], references: [id], name: "Evaluator")
 
-  sportsTypeId Int
-  sportsType   SportsType @relation(fields: [sportsTypeId], references: [id])
-
   matchId String
   match   Match  @relation(fields: [matchId], references: [id])
 
@@ -124,7 +122,6 @@ model SportsType {
   id   Int    @id @default(autoincrement())
   name String @unique
 
-  rate   Rating[]
   tier   Tier[]
   match  Match[]
   likers User[]   @relation(name: "likerSportsType")

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -30,13 +31,15 @@ import {
   UpdateMatchDto,
 } from './matches.dto';
 import { MatchesService } from './matches.service';
+import { validate, validateOrReject } from 'class-validator';
+import { json } from 'stream/consumers';
 
 @Controller('matches')
 export class MatchesController {
   constructor(
     private readonly matchesService: MatchesService,
     private readonly prismaService: PrismaService,
-  ) {}
+  ) { }
 
   @Get()
   async findMatches(@Query() filters: FindMatchesDto) {
@@ -125,48 +128,5 @@ export class MatchesController {
       throw new ConflictException(INVALID_APPLICATION);
     }
     return await this.matchesService.participate(matchId, user.id);
-  }
-
-  @Post(':matchId/rating')
-  @Private('user')
-  async rateParticipants(
-    @DAccount('user') rater: User,
-    @Param('matchId') matchId: string,
-    @Body() dto: RateDto,
-  ) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-      include: {
-        participants: true,
-      },
-    });
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
-    if (dto.userId === rater.id) {
-      throw new ConflictException(SELF_RATING);
-    }
-
-    if (
-      !match.participants.some(
-        (participant) => participant.id === dto.userId,
-      ) ||
-      !match.participants.some((participant) => participant.id === rater.id)
-    ) {
-      throw new ConflictException(INVALID_RATING);
-    }
-
-    const foundScore = await this.prismaService.rating.findFirst({
-      where: {
-        userId: dto.userId,
-        raterId: rater.id,
-        matchId: matchId,
-      },
-    });
-
-    if (foundScore) {
-      throw new ConflictException(ALREADY_RATED);
-    }
-    return await this.matchesService.ratePlayer(matchId, rater.id, dto);
   }
 }

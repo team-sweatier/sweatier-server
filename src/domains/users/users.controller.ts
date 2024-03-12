@@ -85,7 +85,7 @@ export class UsersController {
       email: user.email,
     });
 
-    response.cookie('accessToken', accessToken, this.cookieOptions);
+    //   response.cookie('accessToken', accessToken, this.cookieOptions);
 
     return { accessToken };
   }
