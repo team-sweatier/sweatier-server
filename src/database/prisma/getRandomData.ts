@@ -11,42 +11,49 @@ const commonPlaceName = [
     latitude: 37.5005351,
     longitude: 126.9938763,
     region: '서울',
+    address: '서울특별시 서초구 신반포로16길 30 (반포동)',
   },
   {
     placeName: '노량진',
     latitude: 37.5151799,
     longitude: 126.9410954,
     region: '서울',
+    address: '서울특별시 동작구 노들로 688 (노량진동)',
   },
   {
     placeName: '난지 한강공원',
     latitude: 37.568435,
     longitude: 126.875951,
     region: '서울',
+    address: '서울특별시 마포구 한강난지로 162 (상암동)',
   },
   {
     placeName: '망원 유수지',
     latitude: 37.55784,
     longitude: 126.8972554,
     region: '서울',
+    address: '서울특별시 마포구 월드컵로25길 190 (망원동)',
   },
   {
     placeName: '잠실 유수지',
     latitude: 37.5031277,
     longitude: 127.0784893,
     region: '서울',
+    address: '서울특별시 송파구 탄천동로 211 (잠실동)',
   },
   {
     placeName: '방배 배수지 체육공원',
     latitude: 37.4733242,
     longitude: 126.9925541,
     region: '서울',
+    address: '서울특별시 서초구 남부순환로296길 4-9 (방배동)',
   },
   {
     placeName: '뚝섬한강공원',
     latitude: 37.52935069999999,
     longitude: 127.0699562,
     region: '서울',
+    address: '서울특별시 광진구 강변북로 2273 (자양동)',
   },
 ];
 const specificPlaceNames = {
@@ -87,6 +94,26 @@ const sportsCapabilities = {
   5: [10, 12, 14, 16, 18, 20, 22],
 };
 
+const oneLiners = [
+  '매너 있게 플레이합시다!',
+  '같은 취미를 가진 사람들과 만나고 싶어요.',
+  '주말 아침 축구 게임에 참여해요. 같이 뛰어봐요!',
+  '정정당당한 경기를 원해요.',
+  '초보라서... 조금만 봐주세요!',
+  '성장하는 모습을 보고 싶어요.',
+  '퇴근 후 저녁에 주로 플레이해요!',
+  '비슷한 실력의 상대와 경기하고 싶어요.',
+  '스포츠로 새로운 친구를 만들고 싶어요.',
+  '퇴근 후 저녁에 주로 농구해요!',
+  '함께 운동하면서 즐길 사람 찾아요!',
+  '배드민턴 칠 파트너 구합니다. 초보 환영!',
+  '운동으로 스트레스 풀고 싶어요. 동참하실 분?',
+  '실력 향상, 함께 목표해요.',
+  '함께 땀 흘리며 즐겨요!',
+  '건강도 챙기고 새 친구도 만들고 싶어요!',
+  '테니스 좋아하는 사람 여기 모여라!',
+];
+
 function getRandomIndex(length: number): number {
   return Math.floor(Math.random() * length);
 }
@@ -112,7 +139,7 @@ export async function getRandomUserTier() {
 }
 
 export function getRandomGender(): Gender {
-  const genders: Gender[] = [Gender.male, Gender.female];
+  const genders: Gender[] = [Gender.male, Gender.female, Gender.both];
   return genders[getRandomIndex(genders.length)];
 }
 
@@ -126,7 +153,20 @@ export function getRandomPhoneNumber() {
 }
 
 export function getRandomNickName() {
-  return faker.person.fullName();
+  const nickNameRegex = /,|\s/g;
+  const fullName =
+    faker.word.adjective().replace(nickNameRegex, '') +
+    faker.person.lastName().replace(nickNameRegex, '') +
+    faker.person.firstName().replace(nickNameRegex, '');
+  return fullName;
+}
+
+export function getRandomImg() {
+  return faker.image.avatarLegacy();
+}
+
+export function getRandomOneLiner() {
+  return oneLiners[getRandomIndex(oneLiners.length)];
 }
 
 export function getRandomBankName() {
@@ -144,10 +184,10 @@ export function getRandomAccountNumber() {
 }
 
 export function getRandomMatchDay() {
-  const startDate = new Date(2024, 2, 1);
-  const endDate = new Date(2024, 3, 30);
+  const startDate = new Date(2024, 1, 15);
+  const endDate = new Date(2024, 3, 1);
 
-  const randomDate = faker.date.between(startDate, endDate);
+  const randomDate = faker.date.between({ from: startDate, to: endDate });
 
   return randomDate;
 }
@@ -185,9 +225,10 @@ export function getRandomSports(sportTypeId: number) {
     longitude: common.longitude,
     placeName: specific,
     region: common.region,
+    address: common.address,
   };
 }
-//TODO
+
 export async function getRandomTier(sportsTypeId: number, hostId: string) {
   const hostTier = await prismaService.user.findUnique({
     where: { id: hostId },
@@ -209,6 +250,11 @@ export async function getRandomMatches(hostId) {
   const matchData = getRandomSports(sportsTypeId);
 
   return { sportsTypeId, tier, ...matchData };
+}
+
+export function getRandomRating() {
+  const rating = [1, 2, 3, 4, 5];
+  return rating[getRandomIndex(rating.length)];
 }
 
 // export function getRandomDistrict() {

@@ -24,7 +24,10 @@ export class GCSService extends StorageService {
     );
   }
 
-  async uploadImage(fileName: string, file: Express.Multer.File) {
+  async uploadImage(
+    fileName: string,
+    file: Pick<Express.Multer.File, 'originalname' | 'buffer'>,
+  ) {
     const bucketFile = this.bucket.file(fileName);
 
     const ext = this.getExt(file);
