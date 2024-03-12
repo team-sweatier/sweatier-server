@@ -33,7 +33,7 @@ export const CHOOSE_GENDER = '성별을 선택해주세요.';
 
 export const INVALID_CAPABILITY = '모집 인원을 두 명 이상 입력해주세요.';
 
-export const CHOOSE_SPORTSTYPE = '종목을 설정해주세요.';
+export const CHOOSE_SPORTS_TYPE = '종목을 설정해주세요.';
 
 export const CHOOSE_TIER = '티어를 설정해주세요.';
 
@@ -43,5 +43,6 @@ export const INVALID_REGION = '리전을 두글자 이상 입력해주세요.';
 
 export const INVALID_RATE = '별점은 1점부터 5점까지 매길 수 있습니다.';
 
-export const INVALID_DATE = '경기시간과 날짜를 확인해주세요.';
+export const MINIMUM_RATERS_REQUIRED = '최소 한명 이상 평가를 해야합니다.';
 
+export const INVALID_DATE = '경기시간과 날짜를 확인해주세요.';

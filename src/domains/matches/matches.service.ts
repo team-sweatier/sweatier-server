@@ -15,7 +15,13 @@ import {
   MIN_PARTICIPANTS_REACHED,
   PROFILE_NEEDED,
 } from './matches-error.messages';
-import { FindMatchesDto, UpdateMatchDto } from './matches.dto';
+
+import {
+  CreateMatchDto,
+  FindMatchesDto,
+  ParticipantRating,
+  UpdateMatchDto,
+} from './matches.dto';
 
 @Injectable()
 export class MatchesService {
@@ -177,34 +183,39 @@ export class MatchesService {
     return result;
   }
 
-  async createMatch(
-    user: User,
-    data: Omit<Prisma.MatchUncheckedCreateInput, 'id' | 'hostId' | 'spo'>,
-  ) {
+  async createMatch(userId: string, data: CreateMatchDto) {
+    const { sportsTypeName, ...matchData } = data;
     const id = nanoid(this.configService.get('NANOID_SIZE'));
-    await this.prismaService.match.create({
+    const foundUser = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: { tiers: true },
+    });
+    const sportType = await this.prismaService.sportsType.findUnique({
+      where: { name: sportsTypeName },
+    });
+    const tier = foundUser.tiers.find(
+      (tier) => tier.sportsTypeId === sportType.id,
+    );
+
+    const match = await this.prismaService.match.create({
       data: {
-        ...data,
+        ...matchData,
         id,
-        hostId: user.id,
+        hostId: userId,
+        sportsTypeId: sportType.id,
+        tierId: tier.id,
         participants: {
           connect: {
-            id: user.id,
+            id: userId,
           },
         },
       },
-    });
-
-    return await this.prismaService.match.findUnique({
-      where: { id: id },
-      include: {
-        participants: {
-          select: {
-            id: true,
-          },
-        },
+      select: {
+        id: true,
+        hostId: true,
       },
     });
+    return match;
   }
 
   async editMatch(matchId: string, data: UpdateMatchDto) {
@@ -296,6 +307,18 @@ export class MatchesService {
             id: newParticipant.id,
           },
         },
+      },
+    });
+  }
+  async ratePlayer(matchId: string, raterId: string, data: ParticipantRating) {
+    const id = nanoid(this.configService.get('NANOID_SIZE'));
+    return await this.prismaService.rating.create({
+      data: {
+        id: id,
+        matchId,
+        raterId,
+        userId: data.participantId,
+        value: data.value,
       },
     });
   }
