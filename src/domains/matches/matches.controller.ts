@@ -167,9 +167,3 @@ export class MatchesController {
     return completedRating;
   }
 }
-// if (
-//   !match.participants.some((participant) => participant.id === ratings) ||
-//   !match.participants.some((participant) => participant.id === rater.id)
-// ) {
-//   throw new ConflictException(INVALID_RATING);
-// }
