@@ -11,42 +11,49 @@ const commonPlaceName = [
     latitude: 37.5005351,
     longitude: 126.9938763,
     region: '서울',
+    address: '서울특별시 서초구 신반포로16길 30 (반포동)',
   },
   {
     placeName: '노량진',
     latitude: 37.5151799,
     longitude: 126.9410954,
     region: '서울',
+    address: '서울특별시 동작구 노들로 688 (노량진동)',
   },
   {
     placeName: '난지 한강공원',
     latitude: 37.568435,
     longitude: 126.875951,
     region: '서울',
+    address: '서울특별시 마포구 한강난지로 162 (상암동)',
   },
   {
     placeName: '망원 유수지',
     latitude: 37.55784,
     longitude: 126.8972554,
     region: '서울',
+    address: '서울특별시 마포구 월드컵로25길 190 (망원동)',
   },
   {
     placeName: '잠실 유수지',
     latitude: 37.5031277,
     longitude: 127.0784893,
     region: '서울',
+    address: '서울특별시 송파구 탄천동로 211 (잠실동)',
   },
   {
     placeName: '방배 배수지 체육공원',
     latitude: 37.4733242,
     longitude: 126.9925541,
     region: '서울',
+    address: '서울특별시 서초구 남부순환로296길 4-9 (방배동)',
   },
   {
     placeName: '뚝섬한강공원',
     latitude: 37.52935069999999,
     longitude: 127.0699562,
     region: '서울',
+    address: '서울특별시 광진구 강변북로 2273 (자양동)',
   },
 ];
 const specificPlaceNames = {
@@ -218,6 +225,7 @@ export function getRandomSports(sportTypeId: number) {
     longitude: common.longitude,
     placeName: specific,
     region: common.region,
+    address: common.address,
   };
 }
 

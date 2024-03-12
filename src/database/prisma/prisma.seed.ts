@@ -158,8 +158,16 @@ async function userSeed() {
 async function matchSeed(hostId: string) {
   const sportsTypeId = await getRandomSportsTypeId();
 
-  const { title, content, capability, latitude, longitude, placeName, region } =
-    getRandomSports(sportsTypeId);
+  const {
+    title,
+    content,
+    capability,
+    latitude,
+    longitude,
+    placeName,
+    region,
+    address,
+  } = getRandomSports(sportsTypeId);
   const tierId = await getRandomTier(sportsTypeId, hostId);
   const randomDate = new Date(getRandomMatchDay());
   const match = await prismaService.match.create({
@@ -181,6 +189,7 @@ async function matchSeed(hostId: string) {
       longitude,
       placeName,
       region,
+      address,
       matchDay: randomDate,
       createdAt: randomDate,
       updatedAt: randomDate,
@@ -235,7 +244,7 @@ async function participateSeed(userId) {
           },
         },
       });
-      console.log('참가여');
+      console.log('참가');
       console.log(participating);
     }
   }
@@ -265,7 +274,6 @@ async function ratingSeed() {
               id: nanoid(configService.get('NANOID_SIZE')),
               userId,
               raterId,
-              sportsTypeId: match.sportsTypeId,
               matchId: match.id,
               value: getRandomRating(),
             },
