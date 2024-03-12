@@ -96,28 +96,33 @@ export class MatchesService {
   async findMatchesByKeywords(keywords: string) {
     const search = keywords
       .split(' ')
-      .filter((keyword) => keyword.trim() !== '')
-      .map((keyword) => `${keyword.trim()}:*`)
+      .filter((keyword) => keyword)
+      .map((keyword) => `${keyword}:*`)
       .join(' & ');
+
+    const [todayUTC, endDateUTC] = [
+      dayUtil.day().utc(),
+      dayUtil.day().utc().add(2, 'weeks'),
+    ];
 
     const matches = await this.prismaService.match.findMany({
       where: {
-        OR: [
-          {
-            title: {
-              search,
-            },
-          },
-          {
-            content: {
-              search,
-            },
-          },
-        ],
+        matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+        OR: [{ title: { search } }, { content: { search } }],
+      },
+      include: {
+        participants: { select: { id: true } },
+        tier: { select: { value: true } },
+        sportsType: { select: { name: true } },
       },
     });
 
-    return matches;
+    return matches.map((match) => ({
+      ...match,
+      applicants: match.participants.length,
+      tier: match.tier.value,
+      sportsType: match.sportsType.name,
+    }));
   }
 
   async findMatch(matchId: string) {
