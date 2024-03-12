@@ -11,6 +11,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
@@ -25,6 +27,8 @@ import {
 } from './matches-error.messages';
 import { CreateMatchDto, FindMatchesDto, UpdateMatchDto } from './matches.dto';
 import { MatchesService } from './matches.service';
+import { Request } from 'express';
+import * as jwt from 'jsonwebtoken';
 
 @Controller('matches')
 export class MatchesController {
@@ -34,8 +38,17 @@ export class MatchesController {
   ) { }
 
   @Get()
-  async findMatches(@Query() filters: FindMatchesDto) {
-    return await this.matchesService.findMatches(filters);
+  async findMatches(@Query() filters: FindMatchesDto, @Req() request: Request) {
+    const loggedIn = Object.keys(request.cookies).length > 0 ? true : false;
+    let userId;
+    if (loggedIn) {
+      const token = request.cookies['accessToken'];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.sub;
+    } else {
+      userId = null;
+    }
+    return await this.matchesService.findMatches(filters, userId);
   }
 
   @Get('/search')
@@ -44,10 +57,7 @@ export class MatchesController {
   }
 
   @Get(':matchId')
-  async findMatch(
-    @Param('matchId') matchId: string,
-    @DAccount('user') user: User,
-  ) {
+  async findMatch(@Param('matchId') matchId: string, @Req() request: Request) {
     const match = await this.prismaService.match.findUnique({
       where: { id: matchId },
     });
@@ -55,8 +65,17 @@ export class MatchesController {
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
+    const loggedIn = Object.keys(request.cookies).length > 0 ? true : false;
 
-    return await this.matchesService.findMatch(matchId);
+    let userId;
+    if (loggedIn) {
+      const token = request.cookies['accessToken'];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded.sub;
+    } else {
+      userId = null;
+    }
+    return await this.matchesService.findMatch(matchId, userId);
   }
 
   @Post()

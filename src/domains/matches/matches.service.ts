@@ -24,12 +24,7 @@ export class MatchesService {
     private readonly prismaService: PrismaService,
   ) { }
 
-  async findMatches(filters: FindMatchesDto, userId?: string) {
-    if (userId)
-      return await this.prismaService.user.findUnique({
-        where: { id: userId },
-      });
-
+  async findMatches(filters: FindMatchesDto, userId: string) {
     const todayUTC = dayUtil.day().utc();
     const endDateUTC = todayUTC.add(2, 'weeks');
 
@@ -74,15 +69,22 @@ export class MatchesService {
       },
     });
 
-    const processedMatches = matches.map((match) => ({
-      ...match,
-      matchDay: new Date(
-        match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
-      ),
-      applicants: match.participants.length,
-      tier: match.tier.value,
-      sportsType: match.sportsType.name,
-    }));
+    const processedMatches = matches.map((match) => {
+      const participating = userId
+        ? match.participants.some((participant) => participant.id === userId)
+        : false;
+
+      return {
+        ...match,
+        matchDay: new Date(
+          match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
+        ),
+        applicants: match.participants.length,
+        tier: match.tier.value,
+        sportsType: match.sportsType.name,
+        participating: participating,
+      };
+    });
 
     return processedMatches;
   }
@@ -114,7 +116,7 @@ export class MatchesService {
     return matches;
   }
 
-  async findMatch(matchId: string) {
+  async findMatch(matchId: string, userId: string) {
     const match = await this.prismaService.match.findUnique({
       where: {
         id: matchId,
@@ -146,7 +148,11 @@ export class MatchesService {
 
     const tier = match.tier.value;
     const sport = match.sportsType.name;
-
+    const participating = match.participants.find(
+      (participant) => participant.id === userId,
+    )
+      ? true
+      : false;
     const result: {
       address: string;
       hostId: string;
@@ -158,6 +164,7 @@ export class MatchesService {
       matchDay: Date;
       tierType: string;
       sportType: string;
+      participating: boolean;
     } & typeof match = {
       ...match,
       address: match.address,
@@ -172,6 +179,7 @@ export class MatchesService {
       ),
       tierType: tier,
       sportType: sport,
+      participating: participating,
     };
 
     return result;

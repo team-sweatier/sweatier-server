@@ -14,15 +14,15 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common";
-import {ConfigService} from "@nestjs/config";
-import {FileInterceptor} from "@nestjs/platform-express";
-import {User} from "@prisma/client";
-import {CookieOptions, Response} from "express";
-import {DAccount} from "src/decorators/account.decorator";
-import {Private} from "src/decorators/private.decorator";
-import {JwtManagerService} from "src/jwt-manager/jwt-manager.service";
-import {dayUtil} from "src/utils/day";
-import {KakaoAuthService} from "./kakao-auth/kakao-auth.service";
+import { ConfigService } from "@nestjs/config";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { User } from "@prisma/client";
+import { CookieOptions, Response } from "express";
+import { DAccount } from "src/decorators/account.decorator";
+import { Private } from "src/decorators/private.decorator";
+import { JwtManagerService } from "src/jwt-manager/jwt-manager.service";
+import { dayUtil } from "src/utils/day";
+import { KakaoAuthService } from "./kakao-auth/kakao-auth.service";
 import {
   DUPLICATE_NICKNAME,
   DUPLICATE_PHONENUMBER,
@@ -41,7 +41,7 @@ import {
   SignUpKakaoUserDto,
   SignUpUserDto,
 } from "./users.dto";
-import {UsersService} from "./users.service";
+import { UsersService } from "./users.service";
 
 @Controller("users")
 export class UsersController {
@@ -67,7 +67,7 @@ export class UsersController {
   @Post("sign-up")
   async signUp(
     @Body() signUpDto: SignUpUserDto,
-    @Res({passthrough: true}) response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     const duplicateEmail = await this.usersService.findUserByEmail(
       signUpDto.email,
@@ -84,13 +84,13 @@ export class UsersController {
 
     response.cookie("accessToken", accessToken, this.cookieOptions);
 
-    return {accessToken};
+    return { accessToken };
   }
 
   @Post("sign-in")
   async signIn(
     @Body() signInDto: SignInUserDto,
-    @Res({passthrough: true}) response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     const foundUser = await this.usersService.findUserByEmail(signInDto.email);
 
@@ -111,7 +111,7 @@ export class UsersController {
 
     response.cookie("accessToken", accessToken, this.cookieOptions);
 
-    return {accessToken};
+    return { accessToken };
   }
 
   @Get("sign-in/kakao")
@@ -122,7 +122,7 @@ export class UsersController {
   @Get("sign-in/kakao/callback")
   async signInKakaoCallback(
     @Query("code") code: string,
-    @Res({passthrough: true}) response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     try {
       const id = await this.kakaoAuthService.getKakaoUsersId(code);
@@ -137,7 +137,7 @@ export class UsersController {
       });
 
       response.cookie("accessToken", accessToken, this.cookieOptions);
-      return {accessToken};
+      return { accessToken };
     } catch (error) {
       throw new UnauthorizedException("인증에 실패했습니다.");
     }
@@ -147,7 +147,7 @@ export class UsersController {
   @Get("refresh-token")
   async refresh(
     @DAccount("user") user: User,
-    @Res({passthrough: true}) response: Response,
+    @Res({ passthrough: true }) response: Response,
   ) {
     const accessToken = this.jwtManagerService.sign("user", {
       id: user.id,
@@ -156,7 +156,7 @@ export class UsersController {
 
     response.cookie("accessToken", accessToken, this.cookieOptions);
 
-    return {accessToken};
+    return { accessToken };
   }
 
   @Private("user")
