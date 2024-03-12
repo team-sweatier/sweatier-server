@@ -146,10 +146,11 @@ export function getRandomPhoneNumber() {
 }
 
 export function getRandomNickName() {
+  const nickNameRegex = /,|\s/g;
   const fullName =
-    faker.word.adjective().trim() +
-    faker.person.lastName().trim() +
-    faker.person.firstName().trim();
+    faker.word.adjective().replace(nickNameRegex, '') +
+    faker.person.lastName().replace(nickNameRegex, '') +
+    faker.person.firstName().replace(nickNameRegex, '');
   return fullName;
 }
 
