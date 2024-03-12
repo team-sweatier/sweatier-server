@@ -15,8 +15,7 @@ import {
   MIN_PARTICIPANTS_REACHED,
   PROFILE_NEEDED,
 } from './matches-error.messages';
-import { FindMatchesDto, RateDto, UpdateMatchDto } from './matches.dto';
-import { matches } from 'class-validator';
+import { FindMatchesDto, UpdateMatchDto } from './matches.dto';
 
 @Injectable()
 export class MatchesService {
@@ -25,7 +24,12 @@ export class MatchesService {
     private readonly prismaService: PrismaService,
   ) { }
 
-  async findMatches(filters: FindMatchesDto) {
+  async findMatches(filters: FindMatchesDto, userId?: string) {
+    if (userId)
+      return await this.prismaService.user.findUnique({
+        where: { id: userId },
+      });
+
     const todayUTC = dayUtil.day().utc();
     const endDateUTC = todayUTC.add(2, 'weeks');
 
@@ -62,8 +66,11 @@ export class MatchesService {
     const matches = await this.prismaService.match.findMany({
       where: where,
       include: {
-        participants: true,
+        participants: {
+          select: { id: true },
+        },
         tier: { select: { value: true } },
+        sportsType: { select: { name: true } },
       },
     });
 
@@ -72,7 +79,9 @@ export class MatchesService {
       matchDay: new Date(
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
+      applicants: match.participants.length,
       tier: match.tier.value,
+      sportsType: match.sportsType.name,
     }));
 
     return processedMatches;
@@ -121,6 +130,11 @@ export class MatchesService {
             value: true,
           },
         },
+        sportsType: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -131,6 +145,7 @@ export class MatchesService {
     });
 
     const tier = match.tier.value;
+    const sport = match.sportsType.name;
 
     const result: {
       address: string;
@@ -142,6 +157,7 @@ export class MatchesService {
       applicants: number;
       matchDay: Date;
       tierType: string;
+      sportType: string;
     } & typeof match = {
       ...match,
       address: match.address,
@@ -155,6 +171,7 @@ export class MatchesService {
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
       tierType: tier,
+      sportType: sport,
     };
 
     return result;
@@ -162,7 +179,7 @@ export class MatchesService {
 
   async createMatch(
     user: User,
-    data: Omit<Prisma.MatchUncheckedCreateInput, 'id' | 'hostId'>,
+    data: Omit<Prisma.MatchUncheckedCreateInput, 'id' | 'hostId' | 'spo'>,
   ) {
     const id = nanoid(this.configService.get('NANOID_SIZE'));
     await this.prismaService.match.create({
