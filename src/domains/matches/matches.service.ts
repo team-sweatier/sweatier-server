@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, Rating, User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -15,7 +15,11 @@ import {
   MIN_PARTICIPANTS_REACHED,
   PROFILE_NEEDED,
 } from './matches-error.messages';
-import { FindMatchesDto, RateDto, UpdateMatchDto } from './matches.dto';
+import {
+  FindMatchesDto,
+  ParticipantRating,
+  UpdateMatchDto,
+} from './matches.dto';
 
 @Injectable()
 export class MatchesService {
@@ -263,6 +267,18 @@ export class MatchesService {
             id: newParticipant.id,
           },
         },
+      },
+    });
+  }
+  async ratePlayer(matchId: string, raterId: string, data: ParticipantRating) {
+    const id = nanoid(this.configService.get('NANOID_SIZE'));
+    return await this.prismaService.rating.create({
+      data: {
+        id: id,
+        matchId,
+        raterId,
+        userId: data.participantId,
+        value: data.value,
       },
     });
   }

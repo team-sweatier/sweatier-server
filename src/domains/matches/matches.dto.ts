@@ -1,8 +1,10 @@
 import { Gender } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
-  IsArray,
+  ArrayNotEmpty,
   IsDateString,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -22,8 +24,8 @@ import {
   INVALID_RATE,
   INVALID_REGION,
   INVALID_TITLE,
+  MINIMUM_RATERS_REQUIRED,
 } from './matches-error.messages';
-import { Type } from 'class-transformer';
 
 export class CreateMatchDto {
   @IsString()
@@ -117,29 +119,22 @@ export class UpdateMatchDto {
   matchDay?: Date;
 }
 
-export class RateDto {
-  constructor(dto: any) {
-    this.value = dto.value;
-    this.matchId = dto.matchId;
-    this.participantId = dto.participantId;
-    this.sportsTypeId = dto.sportsTypeId;
-  }
-
-  @Max(5, { message: INVALID_RATE })
-  @Min(1, { message: INVALID_RATE })
-  value: number;
-
-  @IsString()
-  @IsNotEmpty()
-  matchId: string;
-
+export class ParticipantRating {
   @IsString()
   @IsNotEmpty()
   participantId: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  sportsTypeId: number;
+  @IsInt()
+  @Max(5, { message: INVALID_RATE })
+  @Min(1, { message: INVALID_RATE })
+  value: number;
+}
+
+export class RateDto {
+  @Type(() => ParticipantRating)
+  @ValidateNested({ each: true })
+  @ArrayNotEmpty({ message: MINIMUM_RATERS_REQUIRED })
+  ratings: ParticipantRating[];
 }
 
 export class FindMatchesDto {
