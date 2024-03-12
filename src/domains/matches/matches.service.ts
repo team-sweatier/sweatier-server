@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, Rating, Tier, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -28,7 +28,7 @@ export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
 
   async findMatches(filters: FindMatchesDto, userId?: string) {
     if (userId)
@@ -129,6 +129,7 @@ export class MatchesService {
         participants: {
           select: {
             id: true,
+            userProfile: { select: { nickName: true } },
           },
         },
         tier: {
@@ -153,6 +154,14 @@ export class MatchesService {
     const tier = match.tier.value;
     const sport = match.sportsType.name;
 
+    const matchResult = {
+      ...match,
+      participate: match.participants.map((participant) => ({
+        id: participant.id,
+        nickName: participant.userProfile.nickName,
+      })),
+    };
+
     const result: {
       address: string;
       hostId: string;
@@ -165,7 +174,7 @@ export class MatchesService {
       tierType: string;
       sportType: string;
     } & typeof match = {
-      ...match,
+      ...matchResult,
       address: match.address,
       hostId: host.userId,
       hostNickname: host.nickName,

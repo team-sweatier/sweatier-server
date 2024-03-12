@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -16,14 +17,18 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import {
+  ALREADY_RATED,
   INVALID_APPLICATION,
-  INVALID_DATE,
   INVALID_MATCH,
   SELF_RATING,
-  PROFILE_NEEDED,
   UNAUTHORIZED,
 } from './matches-error.messages';
-import { CreateMatchDto, FindMatchesDto, UpdateMatchDto } from './matches.dto';
+import {
+  CreateMatchDto,
+  FindMatchesDto,
+  RateDto,
+  UpdateMatchDto,
+} from './matches.dto';
 import { MatchesService } from './matches.service';
 
 @Controller('matches')
@@ -72,15 +77,12 @@ export class MatchesController {
     @Param('matchId') matchId: string,
     @Body() dto: UpdateMatchDto,
   ) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-    });
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
-    if (match.hostId !== user.id) {
-      throw new ForbiddenException(UNAUTHORIZED);
-    }
+    const match = await this.matchesService.findMatch(matchId);
+
+    if (!match) throw new NotFoundException(INVALID_MATCH);
+
+    if (match.hostId !== user.id) throw new ForbiddenException(UNAUTHORIZED);
+
     return await this.matchesService.editMatch(matchId, dto);
   }
 
