@@ -150,7 +150,7 @@ export function getRandomNickName() {
 }
 
 export function getRandomImg() {
-  return faker.image.avatar();
+  return faker.image.avatarLegacy();
 }
 
 export function getRandomOneLiner() {
