@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, User } from '@prisma/client';
+import { Prisma, Rating, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -15,14 +15,14 @@ import {
   MIN_PARTICIPANTS_REACHED,
   PROFILE_NEEDED,
 } from './matches-error.messages';
-import { FindMatchesDto, UpdateMatchDto } from './matches.dto';
+import { FindMatchesDto, RateDto, UpdateMatchDto } from './matches.dto';
 
 @Injectable()
 export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) { }
+  ) {}
 
   async findMatches(filters: FindMatchesDto) {
     const todayUTC = dayUtil.day().utc();
@@ -112,15 +112,29 @@ export class MatchesService {
       },
     });
 
-    if (!match) {
-      throw new Error('Match not found');
-    }
+    const host = await this.prismaService.userProfile.findUnique({
+      where: {
+        userId: match.hostId,
+      },
+    });
 
     const result: {
+      address: string;
+      hostId: string;
+      hostNickname: string;
+      hostOneLiner: string | null;
+      hostBankName: string;
+      hostAccountNumber: string;
       applicants: number;
       matchDay: Date;
     } & typeof match = {
       ...match,
+      address: match.address,
+      hostId: host.userId,
+      hostNickname: host.nickName,
+      hostOneLiner: host.oneLiner,
+      hostBankName: host.bankName,
+      hostAccountNumber: host.accountNumber,
       applicants: match.participants.length,
       matchDay: new Date(
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
@@ -249,34 +263,6 @@ export class MatchesService {
             id: newParticipant.id,
           },
         },
-      },
-    });
-  }
-
-  async ratePlayer(
-    matchId: string,
-    graderId: string,
-    data: Omit<
-      Prisma.RatingUncheckedCreateInput,
-      'id' | 'raterId' | 'sportsTypeId' | 'matchId'
-    >,
-  ) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-      include: {
-        participants: true,
-      },
-    });
-
-    const id = nanoid(this.configService.get('NANOID_SIZE'));
-    return await this.prismaService.rating.create({
-      data: {
-        id: id,
-        userId: data.userId,
-        raterId: graderId,
-        sportsTypeId: match.sportsTypeId,
-        matchId: matchId,
-        ...data,
       },
     });
   }

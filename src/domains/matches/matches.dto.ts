@@ -1,5 +1,6 @@
 import { Gender } from '@prisma/client';
 import {
+  IsArray,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -9,6 +10,7 @@ import {
   Max,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 import {
   CHOOSE_GENDER,
@@ -21,6 +23,7 @@ import {
   INVALID_REGION,
   INVALID_TITLE,
 } from './matches-error.messages';
+import { Type } from 'class-transformer';
 
 export class CreateMatchDto {
   @IsString()
@@ -57,6 +60,10 @@ export class CreateMatchDto {
   @IsString()
   @MinLength(2, { message: INVALID_REGION })
   region: string;
+
+  @IsString()
+  @MinLength(5, { message: INVALID_REGION })
+  address: string;
 
   @IsDateString()
   matchDay: Date;
@@ -100,19 +107,41 @@ export class UpdateMatchDto {
   @MinLength(2, { message: INVALID_REGION })
   region?: string;
 
+  @IsString()
+  @IsOptional()
+  @MinLength(5, { message: INVALID_REGION })
+  address: string;
+
   @IsOptional()
   @IsDateString()
   matchDay?: Date;
 }
 
 export class RateDto {
-  @IsString()
-  userId: string;
+  constructor(dto: any) {
+    this.value = dto.value;
+    this.matchId = dto.matchId;
+    this.participantId = dto.participantId;
+    this.sportsTypeId = dto.sportsTypeId;
+  }
 
   @Max(5, { message: INVALID_RATE })
   @Min(1, { message: INVALID_RATE })
   value: number;
+
+  @IsString()
+  @IsNotEmpty()
+  matchId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  participantId: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  sportsTypeId: number;
 }
+
 export class FindMatchesDto {
   @IsOptional()
   @IsString()
