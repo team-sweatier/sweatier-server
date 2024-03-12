@@ -16,18 +16,14 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import {
-  ALREADY_RATED,
   INVALID_APPLICATION,
+  INVALID_DATE,
   INVALID_MATCH,
   SELF_RATING,
+  PROFILE_NEEDED,
   UNAUTHORIZED,
 } from './matches-error.messages';
-import {
-  CreateMatchDto,
-  FindMatchesDto,
-  RateDto,
-  UpdateMatchDto,
-} from './matches.dto';
+import { CreateMatchDto, FindMatchesDto, UpdateMatchDto } from './matches.dto';
 import { MatchesService } from './matches.service';
 
 @Controller('matches')
@@ -48,7 +44,10 @@ export class MatchesController {
   }
 
   @Get(':matchId')
-  async findMatch(@Param('matchId') matchId: string) {
+  async findMatch(
+    @Param('matchId') matchId: string,
+    @DAccount('user') user: User,
+  ) {
     const match = await this.prismaService.match.findUnique({
       where: { id: matchId },
     });
@@ -56,6 +55,7 @@ export class MatchesController {
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
+
     return await this.matchesService.findMatch(matchId);
   }
 
@@ -122,6 +122,11 @@ export class MatchesController {
 
     if (match.hostId === user.id) {
       throw new ConflictException(INVALID_APPLICATION);
+    }
+
+    const now = new Date();
+    if (now >= match.matchDay) {
+      throw new BadRequestException(INVALID_APPLICATION);
     }
     return await this.matchesService.participate(matchId, user.id);
   }

@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { Prisma, Rating, Tier, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -15,6 +15,7 @@ import {
   MIN_PARTICIPANTS_REACHED,
   PROFILE_NEEDED,
 } from './matches-error.messages';
+
 import {
   CreateMatchDto,
   FindMatchesDto,
@@ -27,9 +28,14 @@ export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) {}
+  ) { }
 
-  async findMatches(filters: FindMatchesDto) {
+  async findMatches(filters: FindMatchesDto, userId?: string) {
+    if (userId)
+      return await this.prismaService.user.findUnique({
+        where: { id: userId },
+      });
+
     const todayUTC = dayUtil.day().utc();
     const endDateUTC = todayUTC.add(2, 'weeks');
 
@@ -63,17 +69,28 @@ export class MatchesService {
       };
     }
 
-    let matches = await this.prismaService.match.findMany({
+    const matches = await this.prismaService.match.findMany({
       where: where,
+      include: {
+        participants: {
+          select: { id: true },
+        },
+        tier: { select: { value: true } },
+        sportsType: { select: { name: true } },
+      },
     });
-    matches = matches.map((match) => ({
+
+    const processedMatches = matches.map((match) => ({
       ...match,
       matchDay: new Date(
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
+      applicants: match.participants.length,
+      tier: match.tier.value,
+      sportsType: match.sportsType.name,
     }));
 
-    return matches;
+    return processedMatches;
   }
 
   async findMatchesByKeywords(keywords: string) {
@@ -114,6 +131,16 @@ export class MatchesService {
             id: true,
           },
         },
+        tier: {
+          select: {
+            value: true,
+          },
+        },
+        sportsType: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 
@@ -122,6 +149,9 @@ export class MatchesService {
         userId: match.hostId,
       },
     });
+
+    const tier = match.tier.value;
+    const sport = match.sportsType.name;
 
     const result: {
       address: string;
@@ -132,6 +162,8 @@ export class MatchesService {
       hostAccountNumber: string;
       applicants: number;
       matchDay: Date;
+      tierType: string;
+      sportType: string;
     } & typeof match = {
       ...match,
       address: match.address,
@@ -144,6 +176,8 @@ export class MatchesService {
       matchDay: new Date(
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
+      tierType: tier,
+      sportType: sport,
     };
 
     return result;

@@ -96,5 +96,8 @@
   "prisma": {
     "schema": "./src/database/prisma/schema.prisma",
     "seed": "ts-node ./src/database/prisma/prisma.seed.ts"
+  },
+  "prettier": {
+    "bracketSpacing": false
   }
 }
