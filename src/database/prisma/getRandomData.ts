@@ -146,7 +146,11 @@ export function getRandomPhoneNumber() {
 }
 
 export function getRandomNickName() {
-  return faker.person.firstName();
+  const fullName =
+    faker.word.adjective().trim() +
+    faker.person.lastName().trim() +
+    faker.person.firstName().trim();
+  return fullName;
 }
 
 export function getRandomImg() {
