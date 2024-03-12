@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, User } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -16,6 +16,7 @@ import {
   PROFILE_NEEDED,
 } from './matches-error.messages';
 import {
+  CreateMatchDto,
   FindMatchesDto,
   ParticipantRating,
   UpdateMatchDto,
@@ -148,34 +149,39 @@ export class MatchesService {
     return result;
   }
 
-  async createMatch(
-    user: User,
-    data: Omit<Prisma.MatchUncheckedCreateInput, 'id' | 'hostId'>,
-  ) {
+  async createMatch(userId: string, data: CreateMatchDto) {
+    const { sportsTypeName, ...matchData } = data;
     const id = nanoid(this.configService.get('NANOID_SIZE'));
-    await this.prismaService.match.create({
+    const foundUser = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: { tiers: true },
+    });
+    const sportType = await this.prismaService.sportsType.findUnique({
+      where: { name: sportsTypeName },
+    });
+    const tier = foundUser.tiers.find(
+      (tier) => tier.sportsTypeId === sportType.id,
+    );
+
+    const match = await this.prismaService.match.create({
       data: {
-        ...data,
+        ...matchData,
         id,
-        hostId: user.id,
+        hostId: userId,
+        sportsTypeId: sportType.id,
+        tierId: tier.id,
         participants: {
           connect: {
-            id: user.id,
+            id: userId,
           },
         },
       },
-    });
-
-    return await this.prismaService.match.findUnique({
-      where: { id: id },
-      include: {
-        participants: {
-          select: {
-            id: true,
-          },
-        },
+      select: {
+        id: true,
+        hostId: true,
       },
     });
+    return match;
   }
 
   async editMatch(matchId: string, data: UpdateMatchDto) {

@@ -62,7 +62,7 @@ export class MatchesController {
   @Post()
   @Private('user')
   async createMatch(@DAccount('user') user: User, @Body() dto: CreateMatchDto) {
-    return await this.matchesService.createMatch(user, dto);
+    return await this.matchesService.createMatch(user.id, dto);
   }
 
   @Put(':matchId')

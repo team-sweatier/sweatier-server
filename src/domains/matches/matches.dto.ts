@@ -16,7 +16,7 @@ import {
 } from 'class-validator';
 import {
   CHOOSE_GENDER,
-  CHOOSE_SPORTSTYPE,
+  CHOOSE_SPORTS_TYPE,
   CHOOSE_TIER,
   INVALID_CAPABILITY,
   INVALID_CONTENT,
@@ -43,11 +43,14 @@ export class CreateMatchDto {
   @Min(2, { message: INVALID_CAPABILITY })
   capability: number;
 
-  @IsNotEmpty({ message: CHOOSE_SPORTSTYPE })
-  sportsTypeId: number;
+  // @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
+  // sportsTypeId: number;
+  @IsString()
+  @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
+  sportsTypeName: string;
 
-  @IsNotEmpty({ message: CHOOSE_TIER })
-  tierId: string;
+  // @IsNotEmpty({ message: CHOOSE_TIER })
+  // tierId: string;
 
   @IsNumber()
   latitude: number;
@@ -92,7 +95,7 @@ export class UpdateMatchDto {
   capability?: number;
 
   @IsOptional()
-  @IsNotEmpty({ message: CHOOSE_SPORTSTYPE })
+  @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
   sportsTypeId?: number;
 
   @IsOptional()

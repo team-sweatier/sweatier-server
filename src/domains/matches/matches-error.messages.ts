@@ -33,7 +33,7 @@ export const CHOOSE_GENDER = '성별을 선택해주세요.';
 
 export const INVALID_CAPABILITY = '모집 인원을 두 명 이상 입력해주세요.';
 
-export const CHOOSE_SPORTSTYPE = '종목을 설정해주세요.';
+export const CHOOSE_SPORTS_TYPE = '종목을 설정해주세요.';
 
 export const CHOOSE_TIER = '티어를 설정해주세요.';
 
