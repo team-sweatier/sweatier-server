@@ -13,18 +13,6 @@ import {
   UnauthorizedException,
   UploadedFile,
   UseInterceptors,
-<<<<<<< HEAD
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { User } from "@prisma/client";
-import { CookieOptions, Response } from "express";
-import { DAccount } from "src/decorators/account.decorator";
-import { Private } from "src/decorators/private.decorator";
-import { JwtManagerService } from "src/jwt-manager/jwt-manager.service";
-import { dayUtil } from "src/utils/day";
-import { KakaoAuthService } from "./kakao-auth/kakao-auth.service";
-=======
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -35,7 +23,6 @@ import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import { dayUtil } from 'src/utils/day';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
->>>>>>> b790eb557691020b4fbdc39a10dfd51786061d36
 import {
   DUPLICATE_NICKNAME,
   DUPLICATE_PHONENUMBER,
@@ -53,13 +40,8 @@ import {
   SignInUserDto,
   SignUpKakaoUserDto,
   SignUpUserDto,
-<<<<<<< HEAD
-} from "./users.dto";
-import { UsersService } from "./users.service";
-=======
 } from './users.dto';
 import { UsersService } from './users.service';
->>>>>>> b790eb557691020b4fbdc39a10dfd51786061d36
 
 @Controller('users')
 export class UsersController {
@@ -139,11 +121,7 @@ export class UsersController {
 
   @Get('sign-in/kakao/callback')
   async signInKakaoCallback(
-<<<<<<< HEAD
-    @Query("code") code: string,
-=======
     @Query('code') code: string,
->>>>>>> b790eb557691020b4fbdc39a10dfd51786061d36
     @Res({ passthrough: true }) response: Response,
   ) {
     try {
@@ -158,11 +136,7 @@ export class UsersController {
         email: user.email,
       });
 
-<<<<<<< HEAD
-      response.cookie("accessToken", accessToken, this.cookieOptions);
-=======
       response.cookie('accessToken', accessToken, this.cookieOptions);
->>>>>>> b790eb557691020b4fbdc39a10dfd51786061d36
       return { accessToken };
     } catch (error) {
       throw new UnauthorizedException('인증에 실패했습니다.');
@@ -172,11 +146,7 @@ export class UsersController {
   @Private('user')
   @Get('refresh-token')
   async refresh(
-<<<<<<< HEAD
-    @DAccount("user") user: User,
-=======
     @DAccount('user') user: User,
->>>>>>> b790eb557691020b4fbdc39a10dfd51786061d36
     @Res({ passthrough: true }) response: Response,
   ) {
     const accessToken = this.jwtManagerService.sign('user', {
