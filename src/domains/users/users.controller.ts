@@ -13,16 +13,16 @@ import {
   UnauthorizedException,
   UploadedFile,
   UseInterceptors,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { User } from '@prisma/client';
-import { CookieOptions, Response } from 'express';
-import { DAccount } from 'src/decorators/account.decorator';
-import { Private } from 'src/decorators/private.decorator';
-import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
-import { dayUtil } from 'src/utils/day';
-import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
+} from "@nestjs/common";
+import {ConfigService} from "@nestjs/config";
+import {FileInterceptor} from "@nestjs/platform-express";
+import {User} from "@prisma/client";
+import {CookieOptions, Response} from "express";
+import {DAccount} from "src/decorators/account.decorator";
+import {Private} from "src/decorators/private.decorator";
+import {JwtManagerService} from "src/jwt-manager/jwt-manager.service";
+import {dayUtil} from "src/utils/day";
+import {KakaoAuthService} from "./kakao-auth/kakao-auth.service";
 import {
   DUPLICATE_NICKNAME,
   DUPLICATE_PHONENUMBER,
@@ -32,7 +32,7 @@ import {
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
   NOT_FOUND_PROFILE,
-} from './users-error.messages';
+} from "./users-error.messages";
 import {
   CreateProfileDto,
   EditFavoriteDto,
@@ -40,10 +40,10 @@ import {
   SignInUserDto,
   SignUpKakaoUserDto,
   SignUpUserDto,
-} from './users.dto';
-import { UsersService } from './users.service';
+} from "./users.dto";
+import {UsersService} from "./users.service";
 
-@Controller('users')
+@Controller("users")
 export class UsersController {
   private readonly cookieOptions: CookieOptions;
 
@@ -54,20 +54,20 @@ export class UsersController {
     private readonly configService: ConfigService,
   ) {
     this.cookieOptions = {
-      ...(this.configService.get('NODE_ENV') === 'production' && {
-        httpOnly: true,
+      httpOnly: true,
+      maxAge: parseInt(this.configService.get("COOKIE_MAX_AGE")),
+      sameSite: "none",
+      domain: this.configService.get("CLIENT_DOMAIN"),
+      ...(this.configService.get("NODE_ENV") === "production" && {
         secure: true,
-        sameSite: 'none',
-        domain: this.configService.get('CLIENT_DOMAIN'),
-        maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
       }),
     };
   }
 
-  @Post('sign-up')
+  @Post("sign-up")
   async signUp(
     @Body() signUpDto: SignUpUserDto,
-    @Res({ passthrough: true }) response: Response,
+    @Res({passthrough: true}) response: Response,
   ) {
     const duplicateEmail = await this.usersService.findUserByEmail(
       signUpDto.email,
@@ -77,20 +77,20 @@ export class UsersController {
 
     const user = await this.usersService.createUser(signUpDto);
 
-    const accessToken = this.jwtManagerService.sign('user', {
+    const accessToken = this.jwtManagerService.sign("user", {
       id: user.id,
       email: user.email,
     });
 
-    response.cookie('accessToken', accessToken, this.cookieOptions);
+    response.cookie("accessToken", accessToken, this.cookieOptions);
 
-    return { accessToken };
+    return {accessToken};
   }
 
-  @Post('sign-in')
+  @Post("sign-in")
   async signIn(
     @Body() signInDto: SignInUserDto,
-    @Res({ passthrough: true }) response: Response,
+    @Res({passthrough: true}) response: Response,
   ) {
     const foundUser = await this.usersService.findUserByEmail(signInDto.email);
 
@@ -104,25 +104,25 @@ export class UsersController {
 
     if (!validate) throw new UnauthorizedException(INVALID_USER_CREDENTIAL);
 
-    const accessToken = this.jwtManagerService.sign('user', {
+    const accessToken = this.jwtManagerService.sign("user", {
       id: foundUser.id,
       email: foundUser.email,
     });
 
-    response.cookie('accessToken', accessToken, this.cookieOptions);
+    response.cookie("accessToken", accessToken, this.cookieOptions);
 
-    return { accessToken };
+    return {accessToken};
   }
 
-  @Get('sign-in/kakao')
+  @Get("sign-in/kakao")
   async signInKakao(@Res() response: Response) {
     response.redirect(this.kakaoAuthService.getKakaoAuthUrl());
   }
 
-  @Get('sign-in/kakao/callback')
+  @Get("sign-in/kakao/callback")
   async signInKakaoCallback(
-    @Query('code') code: string,
-    @Res({ passthrough: true }) response: Response,
+    @Query("code") code: string,
+    @Res({passthrough: true}) response: Response,
   ) {
     try {
       const id = await this.kakaoAuthService.getKakaoUsersId(code);
@@ -131,40 +131,40 @@ export class UsersController {
         new SignUpKakaoUserDto(id as string),
       );
 
-      const accessToken = this.jwtManagerService.sign('user', {
+      const accessToken = this.jwtManagerService.sign("user", {
         id: user.id,
         email: user.email,
       });
 
-      response.cookie('accessToken', accessToken, this.cookieOptions);
-      return { accessToken };
+      response.cookie("accessToken", accessToken, this.cookieOptions);
+      return {accessToken};
     } catch (error) {
-      throw new UnauthorizedException('인증에 실패했습니다.');
+      throw new UnauthorizedException("인증에 실패했습니다.");
     }
   }
 
-  @Private('user')
-  @Get('refresh-token')
+  @Private("user")
+  @Get("refresh-token")
   async refresh(
-    @DAccount('user') user: User,
-    @Res({ passthrough: true }) response: Response,
+    @DAccount("user") user: User,
+    @Res({passthrough: true}) response: Response,
   ) {
-    const accessToken = this.jwtManagerService.sign('user', {
+    const accessToken = this.jwtManagerService.sign("user", {
       id: user.id,
       email: user.email,
     });
 
-    response.cookie('accessToken', accessToken, this.cookieOptions);
+    response.cookie("accessToken", accessToken, this.cookieOptions);
 
-    return { accessToken };
+    return {accessToken};
   }
 
-  @Private('user')
-  @Post('profile')
-  @UseInterceptors(FileInterceptor('file'))
+  @Private("user")
+  @Post("profile")
+  @UseInterceptors(FileInterceptor("file"))
   async createProfile(
     @Body() createProfileDto: CreateProfileDto,
-    @DAccount('user') user: User,
+    @DAccount("user") user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
     const foundProfile = await this.usersService.findProfileByUserId(user.id);
@@ -194,18 +194,18 @@ export class UsersController {
     return profile;
   }
 
-  @Private('user')
-  @Get('profile')
-  async getProfile(@DAccount('user') user: User) {
+  @Private("user")
+  @Get("profile")
+  async getProfile(@DAccount("user") user: User) {
     return await this.usersService.findProfileByUserId(user.id);
   }
 
-  @Private('user')
-  @Put('profile')
-  @UseInterceptors(FileInterceptor('file'))
+  @Private("user")
+  @Put("profile")
+  @UseInterceptors(FileInterceptor("file"))
   async editProfile(
     @Body() editProfileDto: EditProfileDto,
-    @DAccount('user') user: User,
+    @DAccount("user") user: User,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const profile = await this.usersService.findProfileByUserId(user.id);
@@ -217,7 +217,7 @@ export class UsersController {
     if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
       const daysSinceLastUpdate = dayUtil
         .day()
-        .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
+        .diff(dayUtil.day(profile.nickNameUpdatedAt), "day");
       if (daysSinceLastUpdate < 30)
         throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
     }
@@ -250,39 +250,39 @@ export class UsersController {
     return editedProfile;
   }
 
-  @Private('user')
-  @Get('tier')
-  async getUserTier(@DAccount('user') user: User) {
+  @Private("user")
+  @Get("tier")
+  async getUserTier(@DAccount("user") user: User) {
     return await this.usersService.getUserTier(user.id);
   }
 
-  @Private('user')
-  @Put('favorite')
+  @Private("user")
+  @Put("favorite")
   async editUserFavorite(
     @Body()
     editFavoriteDto: EditFavoriteDto,
-    @DAccount('user') user: User,
+    @DAccount("user") user: User,
   ) {
     return await this.usersService.editUserFavorite(user.id, editFavoriteDto);
   }
 
-  @Private('user')
-  @Get('/applied-matches')
-  async getAppliedMatches(@DAccount('user') user: User) {
+  @Private("user")
+  @Get("/applied-matches")
+  async getAppliedMatches(@DAccount("user") user: User) {
     return await this.usersService.getAppliedMatches(user.id, false);
   }
 
-  @Private('user')
-  @Get('/participated-matches')
-  async getParticipatedMatches(@DAccount('user') user: User) {
+  @Private("user")
+  @Get("/participated-matches")
+  async getParticipatedMatches(@DAccount("user") user: User) {
     return await this.usersService.getAppliedMatches(user.id, true);
   }
 
-  @Private('user')
-  @Get('/:matchId/rates')
+  @Private("user")
+  @Get("/:matchId/rates")
   async getUserMatchRates(
-    @DAccount('user') user: User,
-    @Param('matchId') matchId: string,
+    @DAccount("user") user: User,
+    @Param("matchId") matchId: string,
   ) {
     return await this.usersService.getUserMatchRates(user.id, matchId);
   }
