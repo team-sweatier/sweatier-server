@@ -131,7 +131,7 @@ export class MatchesService {
     });
 
     const tier = match.tier.value;
-    console.log(tier);
+
     const result: {
       address: string;
       hostId: string;

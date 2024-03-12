@@ -67,8 +67,7 @@ export class MatchesController {
     if (!profile) throw new NotFoundException(PROFILE_NEEDED);
 
     const now = new Date();
-    console.log(dto.matchDay);
-    console.log(now);
+
     const matchDayDate = new Date(dto.matchDay);
     if (matchDayDate <= now) {
       throw new BadRequestException(INVALID_DATE);
