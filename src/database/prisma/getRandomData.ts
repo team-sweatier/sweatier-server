@@ -112,7 +112,7 @@ export async function getRandomUserTier() {
 }
 
 export function getRandomGender(): Gender {
-  const genders: Gender[] = [Gender.male, Gender.female];
+  const genders: Gender[] = [Gender.male, Gender.female, Gender.both];
   return genders[getRandomIndex(genders.length)];
 }
 
@@ -144,8 +144,8 @@ export function getRandomAccountNumber() {
 }
 
 export function getRandomMatchDay() {
-  const startDate = new Date(2024, 2, 1);
-  const endDate = new Date(2024, 3, 30);
+  const startDate = new Date(2024, 1, 15);
+  const endDate = new Date(2024, 3, 1);
 
   const randomDate = faker.date.between(startDate, endDate);
 
@@ -187,7 +187,7 @@ export function getRandomSports(sportTypeId: number) {
     region: common.region,
   };
 }
-//TODO
+
 export async function getRandomTier(sportsTypeId: number, hostId: string) {
   const hostTier = await prismaService.user.findUnique({
     where: { id: hostId },
@@ -209,6 +209,11 @@ export async function getRandomMatches(hostId) {
   const matchData = getRandomSports(sportsTypeId);
 
   return { sportsTypeId, tier, ...matchData };
+}
+
+export async function getRandomRating() {
+  const rating = [1, 2, 3, 4, 5];
+  return rating[getRandomIndex(rating.length)];
 }
 
 // export function getRandomDistrict() {

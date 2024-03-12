@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+import { UserProfile } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import {
   getRandomAccountNumber,
@@ -67,7 +68,7 @@ async function tierSeed() {
   for (const sportType of allSportsTypes) {
     await Promise.all(
       tiers.map(async (tier) => {
-        const result = await prismaService.tier.upsert({
+        await prismaService.tier.upsert({
           where: {
             value_sportsTypeId: {
               value: tier.value,
@@ -82,7 +83,6 @@ async function tierSeed() {
             sportsTypeId: sportType.id,
           },
         });
-        console.log(result);
       }),
     );
   }
@@ -133,6 +133,7 @@ async function matchSeed(hostId: string) {
   const { title, content, capability, latitude, longitude, placeName, region } =
     getRandomSports(sportsTypeId);
   const tierId = await getRandomTier(sportsTypeId, hostId);
+  const randomDate = new Date(getRandomMatchDay());
   const match = await prismaService.match.create({
     data: {
       id: nanoid(configService.get('NANOID_SIZE')),
@@ -152,20 +153,86 @@ async function matchSeed(hostId: string) {
       longitude,
       placeName,
       region,
-      matchDay: new Date(getRandomMatchDay()),
+      matchDay: randomDate,
+      createdAt: randomDate,
+      updatedAt: randomDate,
     },
   });
-  console.log(match);
   return match;
 }
+/**
+1. userId.gender 일치검사
+2. userId.tier 일치검사
+3. participants.length < 케파
+4. hostId !== userId
+ */
+async function participateSeed(userId) {
+  const user = await prismaService.user.findUnique({
+    where: { id: userId },
+    include: { userProfile: true, tiers: true },
+  });
+  if (!user || !user.userProfile) return;
+
+  const userTierIds = user.tiers.map((tier) => tier.id);
+
+  const matches = await prismaService.match.findMany({
+    where: {
+      AND: [
+        {
+          OR: [{ gender: user.userProfile.gender }, { gender: 'both' }],
+        },
+        { hostId: { not: userId } },
+        { tierId: { in: userTierIds } },
+      ],
+    },
+    include: {
+      participants: true,
+    },
+  });
+
+  const eligibleMatches = matches.filter(
+    (match) => match.participants.length < match.capability,
+  );
+
+  for (const match of eligibleMatches) {
+    const alreadyParticipating = match.participants.some(
+      (participant) => participant.id === userId,
+    );
+    if (!alreadyParticipating) {
+      const participating = await prismaService.match.update({
+        where: { id: match.id },
+        data: {
+          participants: {
+            connect: { id: userId },
+          },
+        },
+      });
+      console.log('참가여');
+      console.log(participating);
+    }
+  }
+}
+/**
+ * 1. matchDay 가 현재 시간이전
+ * 2.참가자 1명이 나머지 참가자 전부 평가
+ * 3.
+ */
+// async function ratingSeed() {
+
+// }
 
 async function seed() {
+  const userArray: UserProfile[] = [];
   await sportTypeSeed().then(tierSeed);
-  for (let i = 0; i < 5; i++) {
-    const user = await userSeed();
-    for (let j = 0; j < 3; j++) {
-      await matchSeed(user.userId);
+  for (let i = 0; i < 40; i++) {
+    const userProfile = await userSeed();
+    userArray.push(userProfile);
+    for (let j = 0; j < 2; j++) {
+      await matchSeed(userProfile.userId);
     }
+  }
+  for (let k = 0; k < userArray.length; k++) {
+    await participateSeed(userArray[k].userId);
   }
 }
 seed();
