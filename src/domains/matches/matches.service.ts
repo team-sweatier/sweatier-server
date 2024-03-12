@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma, Rating, User } from '@prisma/client';
+import { Prisma, Rating, Tier, User } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
@@ -16,13 +16,14 @@ import {
   PROFILE_NEEDED,
 } from './matches-error.messages';
 import { FindMatchesDto, RateDto, UpdateMatchDto } from './matches.dto';
+import { matches } from 'class-validator';
 
 @Injectable()
 export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) {}
+  ) { }
 
   async findMatches(filters: FindMatchesDto) {
     const todayUTC = dayUtil.day().utc();
@@ -58,17 +59,23 @@ export class MatchesService {
       };
     }
 
-    let matches = await this.prismaService.match.findMany({
+    const matches = await this.prismaService.match.findMany({
       where: where,
+      include: {
+        participants: true,
+        tier: { select: { value: true } },
+      },
     });
-    matches = matches.map((match) => ({
+
+    const processedMatches = matches.map((match) => ({
       ...match,
       matchDay: new Date(
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
+      tier: match.tier.value,
     }));
 
-    return matches;
+    return processedMatches;
   }
 
   async findMatchesByKeywords(keywords: string) {
@@ -109,6 +116,11 @@ export class MatchesService {
             id: true,
           },
         },
+        tier: {
+          select: {
+            value: true,
+          },
+        },
       },
     });
 
@@ -118,6 +130,8 @@ export class MatchesService {
       },
     });
 
+    const tier = match.tier.value;
+    console.log(tier);
     const result: {
       address: string;
       hostId: string;
@@ -127,6 +141,7 @@ export class MatchesService {
       hostAccountNumber: string;
       applicants: number;
       matchDay: Date;
+      tierType: string;
     } & typeof match = {
       ...match,
       address: match.address,
@@ -139,6 +154,7 @@ export class MatchesService {
       matchDay: new Date(
         match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
       ),
+      tierType: tier,
     };
 
     return result;
