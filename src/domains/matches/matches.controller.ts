@@ -56,7 +56,6 @@ export class MatchesController {
       throw new NotFoundException(INVALID_MATCH);
     }
 
-    console.log(user);
     return await this.matchesService.findMatch(matchId);
   }
 
