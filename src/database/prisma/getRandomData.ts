@@ -105,7 +105,6 @@ const commonPlaceName = [
     address: '대전광역시 유성구 엑스포로 326 (원촌동)',
   },
   {
-
     placeName: '안영 생활체육공원',
     latitude: 36.2855308,
     longitude: 127.3734355,
@@ -342,8 +341,15 @@ export async function getRandomUserTier() {
   return randomTiers;
 }
 
-export function getRandomGender(): Gender {
-  const genders: Gender[] = [Gender.male, Gender.female, Gender.both];
+// export function getRandomGender(): Gender {
+//   const genders: Gender[] = [Gender.male, Gender.female, Gender.both];
+//   return genders[getRandomIndex(genders.length)];
+// }
+export function getRandomGender(includeBoth: boolean = false): Gender {
+  let genders: Gender[] = [Gender.male, Gender.female];
+  if (includeBoth) {
+    genders.push(Gender.both);
+  }
   return genders[getRandomIndex(genders.length)];
 }
 
