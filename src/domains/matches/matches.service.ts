@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
-import { KST_OFFSET_HOURS, dayUtil } from 'src/utils/day';
+import { dayUtil } from 'src/utils/day';
 import {
   INVALID_APPLICATION,
   INVALID_GENDER,
@@ -30,67 +30,50 @@ export class MatchesService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async findMatches(filters: FindMatchesDto, userId?: string) {
-    if (userId)
+  async findMatches(filters?: FindMatchesDto, userId?: string) {
+    if (userId) {
       return await this.prismaService.user.findUnique({
         where: { id: userId },
       });
+    }
 
-    const todayUTC = dayUtil.day().utc();
-    const endDateUTC = todayUTC.add(2, 'weeks');
+    const [todayUTC, endDateUTC] = [
+      dayUtil.day().utc(),
+      dayUtil.day().utc().add(2, 'weeks'),
+    ];
 
-    const where: Prisma.MatchWhereInput = {
+    const filter: Prisma.MatchWhereInput = {
       matchDay: {
         gte: todayUTC.toDate(),
         lte: endDateUTC.toDate(),
       },
+      ...(filters.date && {
+        matchDay: {
+          gte: dayUtil.day(filters.date).toDate(),
+          lt: dayUtil.day(filters.date).add(1, 'day').toDate(),
+        },
+      }),
+      ...(filters.region && { region: filters.region }),
+      ...(filters.sportType && { sportsType: { name: filters.sportType } }),
+      ...(filters.tier && { tier: { value: filters.tier } }),
     };
 
-    if (filters.date) {
-      const parsedDate = dayUtil.day(filters.date);
-      const nextDate = parsedDate.add(1, 'day');
-
-      where.matchDay = { gte: parsedDate.toDate(), lt: nextDate.toDate() };
-    }
-
-    if (filters.region) {
-      where.region = filters.region;
-    }
-
-    if (filters.sportType) {
-      where.sportsType = {
-        name: filters.sportType,
-      };
-    }
-
-    if (filters.tier) {
-      where.tier = {
-        value: filters.tier,
-      };
-    }
-
     const matches = await this.prismaService.match.findMany({
-      where: where,
+      where: filter,
       include: {
-        participants: {
-          select: { id: true },
-        },
+        participants: { select: { id: true } },
         tier: { select: { value: true } },
         sportsType: { select: { name: true } },
       },
     });
 
-    const processedMatches = matches.map((match) => ({
+    return matches.map((match) => ({
       ...match,
-      matchDay: new Date(
-        match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
-      ),
+      matchDay: new Date(),
       applicants: match.participants.length,
       tier: match.tier.value,
       sportsType: match.sportsType.name,
     }));
-
-    return processedMatches;
   }
 
   async findMatchesByKeywords(keywords: string) {
@@ -105,11 +88,13 @@ export class MatchesService {
       dayUtil.day().utc().add(2, 'weeks'),
     ];
 
+    const filter = {
+      matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+      OR: [{ title: { search } }, { content: { search } }],
+    };
+
     const matches = await this.prismaService.match.findMany({
-      where: {
-        matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
-        OR: [{ title: { search } }, { content: { search } }],
-      },
+      where: filter,
       include: {
         participants: { select: { id: true } },
         tier: { select: { value: true } },
@@ -127,9 +112,7 @@ export class MatchesService {
 
   async findMatch(matchId: string) {
     const match = await this.prismaService.match.findUnique({
-      where: {
-        id: matchId,
-      },
+      where: { id: matchId },
       include: {
         participants: {
           select: {
@@ -137,49 +120,21 @@ export class MatchesService {
             userProfile: { select: { nickName: true } },
           },
         },
-        tier: {
-          select: {
-            value: true,
-          },
-        },
-        sportsType: {
-          select: {
-            name: true,
-          },
-        },
+        tier: { select: { value: true } },
+        sportsType: { select: { name: true } },
       },
     });
 
     const host = await this.prismaService.userProfile.findUnique({
-      where: {
-        userId: match.hostId,
-      },
+      where: { userId: match.hostId },
     });
 
-    const tier = match.tier.value;
-    const sport = match.sportsType.name;
-
-    const matchResult = {
+    const result = {
       ...match,
       participate: match.participants.map((participant) => ({
         id: participant.id,
         nickName: participant.userProfile.nickName,
       })),
-    };
-
-    const result: {
-      address: string;
-      hostId: string;
-      hostNickname: string;
-      hostOneLiner: string | null;
-      hostBankName: string;
-      hostAccountNumber: string;
-      applicants: number;
-      matchDay: Date;
-      tierType: string;
-      sportType: string;
-    } & typeof match = {
-      ...matchResult,
       address: match.address,
       hostId: host.userId,
       hostNickname: host.nickName,
@@ -187,11 +142,9 @@ export class MatchesService {
       hostBankName: host.bankName,
       hostAccountNumber: host.accountNumber,
       applicants: match.participants.length,
-      matchDay: new Date(
-        match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
-      ),
-      tierType: tier,
-      sportType: sport,
+      matchDay: new Date(),
+      tierType: match.tier.value,
+      sportType: match.sportsType.name,
     };
 
     return result;

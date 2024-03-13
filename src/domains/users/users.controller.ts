@@ -22,6 +22,7 @@ import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import { dayUtil } from 'src/utils/day';
+import { MatchesService } from '../matches/matches.service';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
   DUPLICATE_NICKNAME,
@@ -52,6 +53,7 @@ export class UsersController {
     private readonly jwtManagerService: JwtManagerService,
     private readonly kakaoAuthService: KakaoAuthService,
     private readonly configService: ConfigService,
+    private readonly matchesService: MatchesService,
   ) {
     this.cookieOptions = {
       httpOnly: true,
@@ -264,6 +266,12 @@ export class UsersController {
     @DAccount('user') user: User,
   ) {
     return await this.usersService.editUserFavorite(user.id, editFavoriteDto);
+  }
+
+  @Private('user')
+  @Get('matches')
+  async getMatches(@DAccount('user') user: User) {
+    return await this.matchesService.findMatches({}, user.id);
   }
 
   @Private('user')
