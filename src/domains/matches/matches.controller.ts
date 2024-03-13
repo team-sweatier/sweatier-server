@@ -13,13 +13,12 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { Request } from 'express';
-import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
+import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import {
   ALREADY_RATED,
   INVALID_APPLICATION,
@@ -38,19 +37,20 @@ import { MatchesService } from './matches.service';
 @Controller('matches')
 export class MatchesController {
   constructor(
+    private readonly jwtManagerService: JwtManagerService,
     private readonly matchesService: MatchesService,
     private readonly prismaService: PrismaService,
-    private readonly configService: ConfigService,
   ) {}
 
   @Get()
   async findMatches(@Query() filters: FindMatchesDto, @Req() request: Request) {
-    const userId = request.cookies['accessToken']
-      ? (jwt.verify(
-          request.cookies['accessToken'],
-          this.configService.get('JWT_SECRET'),
-        ).sub as string)
-      : null;
+    const accessToken = request.cookies['accessToken'];
+
+    if (!accessToken)
+      return await this.matchesService.findMatches(filters, null);
+
+    const userId = (await this.jwtManagerService.verifyAccessToken(accessToken))
+      .id;
 
     return await this.matchesService.findMatches(filters, userId);
   }
@@ -60,12 +60,13 @@ export class MatchesController {
     @Query('keywords') keywords: string,
     @Req() request: Request,
   ) {
-    const userId = request.cookies['accessToken']
-      ? (jwt.verify(
-          request.cookies['accessToken'],
-          this.configService.get('JWT_SECRET'),
-        ).sub as string)
-      : null;
+    const accessToken = request.cookies['accessToken'];
+
+    if (!accessToken)
+      return await this.matchesService.findMatches(keywords, null);
+
+    const userId = (await this.jwtManagerService.verifyAccessToken(accessToken))
+      .id;
 
     return await this.matchesService.findMatches(keywords, userId);
   }
@@ -76,16 +77,14 @@ export class MatchesController {
       where: { id: matchId },
     });
 
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
+    if (!match) throw new NotFoundException(INVALID_MATCH);
 
-    const userId = request.cookies['accessToken']
-      ? (jwt.verify(
-          request.cookies['accessToken'],
-          this.configService.get('JWT_SECRET'),
-        ).sub as string)
-      : null;
+    const accessToken = request.cookies['accessToken'];
+
+    if (!accessToken) return await this.matchesService.findMatch(matchId, null);
+
+    const userId = (await this.jwtManagerService.verifyAccessToken(accessToken))
+      .id;
 
     return await this.matchesService.findMatch(matchId, userId);
   }
