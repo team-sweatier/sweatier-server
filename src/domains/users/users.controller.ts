@@ -22,6 +22,7 @@ import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import { dayUtil } from 'src/utils/day';
+import { NO_MATCHES_FOUND } from '../matches/matches-error.messages';
 import { MatchesService } from '../matches/matches.service';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
@@ -57,7 +58,7 @@ export class UsersController {
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      // maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
       ...(this.configService.get('NODE_ENV') === 'production' && {
@@ -275,16 +276,26 @@ export class UsersController {
   }
 
   @Private('user')
-  @Get('/applied-matches')
-  async getAppliedMatches(@DAccount('user') user: User) {
-    return await this.usersService.getAppliedMatches(user.id, false);
+  @Get('latest-rating')
+  async getUserLatestRate(@DAccount('user') user: User) {
+    const latestMatch = await this.usersService.getUserLatestMatch(user.id);
+    if (!latestMatch) {
+      throw new NotFoundException(NO_MATCHES_FOUND);
+    }
+    return await this.usersService.getHasUserRated(user.id, latestMatch);
   }
 
-  @Private('user')
-  @Get('/participated-matches')
-  async getParticipatedMatches(@DAccount('user') user: User) {
-    return await this.usersService.getAppliedMatches(user.id, true);
-  }
+  // @Private('user')
+  // @Get('/applied-matches')
+  // async getAppliedMatches(@DAccount('user') user: User) {
+  //   return await this.usersService.getUserLatestRate(user.id, false);
+  // }
+
+  // @Private('user')
+  // @Get('/participated-matches')
+  // async getParticipatedMatches(@DAccount('user') user: User) {
+  //   return await this.usersService.getUserLatestRate(user.id, true);
+  // }
 
   @Private('user')
   @Get('/:matchId/rates')
