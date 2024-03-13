@@ -28,19 +28,10 @@ export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-  ) {}
 
-  async findMatches(filters?: FindMatchesDto, userId?: string) {
-    if (userId) {
-      return await this.prismaService.user.findUnique({
-        where: { id: userId },
-      });
-    }
-
-    const [todayUTC, endDateUTC] = [
-      dayUtil.day().utc(),
-      dayUtil.day().utc().add(2, 'weeks'),
-    ];
+  async findMatches(filters: FindMatchesDto, userId: string) {
+    const todayUTC = dayUtil.day().utc();
+    const endDateUTC = todayUTC.add(2, 'weeks');
 
     const filter: Prisma.MatchWhereInput = {
       matchDay: {
@@ -67,13 +58,25 @@ export class MatchesService {
       },
     });
 
-    return matches.map((match) => ({
-      ...match,
-      matchDay: new Date(),
-      applicants: match.participants.length,
-      tier: match.tier.value,
-      sportsType: match.sportsType.name,
-    }));
+
+    const processedMatches = matches.map((match) => {
+      const participating = userId
+        ? match.participants.some((participant) => participant.id === userId)
+        : false;
+
+      return {
+        ...match,
+        matchDay: new Date(
+          match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
+        ),
+        applicants: match.participants.length,
+        tier: match.tier.value,
+        sportsType: match.sportsType.name,
+        participating: participating,
+      };
+    });
+
+    return processedMatches;
   }
 
   async findMatchesByKeywords(keywords: string) {
@@ -110,7 +113,7 @@ export class MatchesService {
     }));
   }
 
-  async findMatch(matchId: string) {
+  async findMatch(matchId: string, userId: string) {
     const match = await this.prismaService.match.findUnique({
       where: { id: matchId },
       include: {
@@ -128,13 +131,25 @@ export class MatchesService {
     const host = await this.prismaService.userProfile.findUnique({
       where: { userId: match.hostId },
     });
+    const participating = match.participants.find(
+      (participant) => participant.id === userId,
+    )
+      ? true
+      : false;
 
-    const result = {
+    const tier = match.tier.value;
+    const sport = match.sportsType.name;
+
+    const matchResult = {
       ...match,
       participate: match.participants.map((participant) => ({
         id: participant.id,
         nickName: participant.userProfile.nickName,
       })),
+    };
+
+    const result = {
+      ...matchResult,
       address: match.address,
       hostId: host.userId,
       hostNickname: host.nickName,
@@ -143,8 +158,9 @@ export class MatchesService {
       hostAccountNumber: host.accountNumber,
       applicants: match.participants.length,
       matchDay: new Date(),
-      tierType: match.tier.value,
-      sportType: match.sportsType.name,
+      tierType: tier,
+      sportType: sport,
+      participating: participating,
     };
 
     return result;
