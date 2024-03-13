@@ -113,12 +113,10 @@ export class MatchesController {
       where: { id: matchId },
     });
 
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
-    if (match.hostId !== user.id) {
-      throw new ForbiddenException(UNAUTHORIZED);
-    }
+    if (!match) throw new NotFoundException(INVALID_MATCH);
+
+    if (match.hostId !== user.id) throw new ForbiddenException(UNAUTHORIZED);
+
     return await this.matchesService.deleteMatch(matchId);
   }
 
