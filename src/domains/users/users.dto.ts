@@ -1,5 +1,5 @@
 import { Gender } from '@prisma/client';
-import { IsEmail, IsEnum, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import {
   BANK_INFO_NEEDED,
   GENDER_TYPE_NEEDED,
@@ -71,30 +71,35 @@ export class CreateProfileDto {
 
 export class EditProfileDto {
   @IsOptional()
+  @IsNotEmpty()
   @IsEnum(Gender, { message: GENDER_TYPE_NEEDED })
   gender: Gender;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MinLength(11, { message: PHONE_NUMBER_NEEDED })
   phoneNumber: string;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MinLength(2, { message: BANK_INFO_NEEDED })
   bankName: string;
 
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   @MinLength(8, { message: BANK_INFO_NEEDED })
   accountNumber: string;
 
   @IsOptional()
+  @IsNotEmpty({ message: INVALID_NICKNAME })
   nickName: string | undefined;
 
   @IsOptional()
   @IsString()
-  oneLiner?: string;
+  oneLiner: string;
 }
 
 export class EditFavoriteDto {
