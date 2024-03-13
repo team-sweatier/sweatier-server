@@ -223,7 +223,6 @@ export class MatchesService {
 
     return updatedMatch;
   }
-  
 
   async deleteMatch(matchId: string) {
     return await this.prismaService.match.delete({
