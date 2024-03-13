@@ -10,14 +10,11 @@ import {
   getRandomEmail,
   getRandomGender,
   getRandomImg,
-  getRandomMatchDay,
+  getRandomMatches,
   getRandomNickName,
   getRandomOneLiner,
   getRandomPhoneNumber,
   getRandomRating,
-  getRandomSports,
-  getRandomSportsTypeId,
-  getRandomTier,
   getRandomUserTier,
 } from './getRandomData';
 import { PrismaService } from './prisma.service';
@@ -104,7 +101,7 @@ const tiers = [
 //       await prismaService.sportsType.upsert({
 //         where: { name: sportType.name },
 //         update: {},
-//         create: { name: sportType.name },
+//         create: { name: sportType.name, rules: sportType.rules },
 //       });
 //     }),
 //   );
@@ -205,9 +202,10 @@ async function userSeed() {
 }
 
 async function matchSeed(hostId: string) {
-  const sportsTypeId = await getRandomSportsTypeId();
-
   const {
+    randomSportsTypeId,
+    randomDate,
+    tierId,
     title,
     content,
     capability,
@@ -216,9 +214,8 @@ async function matchSeed(hostId: string) {
     placeName,
     region,
     address,
-  } = getRandomSports(sportsTypeId);
-  const tierId = await getRandomTier(sportsTypeId, hostId);
-  const randomDate = new Date(getRandomMatchDay());
+  } = await getRandomMatches(hostId);
+
   const match = await prismaService.match.create({
     data: {
       id: nanoid(configService.get('NANOID_SIZE')),
@@ -228,7 +225,7 @@ async function matchSeed(hostId: string) {
           id: hostId,
         },
       },
-      sportsTypeId,
+      sportsTypeId: randomSportsTypeId,
       tierId,
       title,
       content,
