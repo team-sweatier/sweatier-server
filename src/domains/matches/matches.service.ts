@@ -44,15 +44,14 @@ export class MatchesService {
         participating: false,
       };
 
-      return {
-        ...processedMatch,
-        participating: match.participants.some(
-          (participant) => participant.id === userId,
-        ),
-      };
+      processedMatch.participating = match.participants.some(
+        (participant) => participant.id === userId,
+      );
+
+      return processedMatch;
     });
 
-    return { ...processedMatches, userId };
+    return processedMatches;
   }
 
   async getQueryFilter(filters: FindMatchesDto | string) {
