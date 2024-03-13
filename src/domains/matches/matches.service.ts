@@ -36,21 +36,24 @@ export class MatchesService {
     const matches = await this.filterMatches(filter);
 
     const processedMatches = matches.map((match) => {
-      const participating = userId
-        ? match.participants.some((participant) => participant.id === userId)
-        : false;
+      const participating =
+        userId &&
+        match.participants
+          .map((participant) => participant.id)
+          .includes(userId);
 
       return {
         ...match,
         applicants: match.participants.length,
         tier: match.tier.value,
         sportsType: [match.sportsType.name, match.sportsType.rules],
-        participating: participating,
+        participating,
       };
     });
 
     return processedMatches;
   }
+
   async getQueryFilter(filters: FindMatchesDto | string) {
     const [todayUTC, endDateUTC] = [
       dayUtil.day().utc(),
@@ -119,11 +122,9 @@ export class MatchesService {
       where: { userId: match.hostId },
     });
 
-    const participating = match.participants.find(
-      (participant) => participant.id === userId,
-    )
-      ? true
-      : false;
+    const participating =
+      userId &&
+      match.participants.map((participant) => participant.id).includes(userId);
 
     const tier = match.tier.value;
     const sport = [match.sportsType.name, match.sportsType.rules];
@@ -139,7 +140,7 @@ export class MatchesService {
       applicants: match.participants.length,
       tierType: tier,
       sportType: sport,
-      participating: participating,
+      participating,
       hostProfileImgSrc:
         'https://storage.googleapis.com/sweatier-user-profile-image/' +
         host.userId,
