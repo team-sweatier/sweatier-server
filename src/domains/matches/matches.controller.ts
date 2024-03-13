@@ -12,9 +12,11 @@ import {
   Put,
   Query,
   Req,
-  UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
+import { Request } from 'express';
+import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
@@ -32,9 +34,6 @@ import {
   UpdateMatchDto,
 } from './matches.dto';
 import { MatchesService } from './matches.service';
-import { Request } from 'express';
-import * as jwt from 'jsonwebtoken';
-import { ConfigService } from '@nestjs/config';
 
 @Controller('matches')
 export class MatchesController {
@@ -42,7 +41,7 @@ export class MatchesController {
     private readonly matchesService: MatchesService,
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   @Get()
   async findMatches(@Query() filters: FindMatchesDto, @Req() request: Request) {
@@ -57,8 +56,18 @@ export class MatchesController {
   }
 
   @Get('/search')
-  async findMatchesByKeywords(@Query('keywords') keywords: string) {
-    return await this.matchesService.findMatchesByKeywords(keywords);
+  async findMatchesByKeywords(
+    @Query('keywords') keywords: string,
+    @Req() request: Request,
+  ) {
+    const userId = request.cookies['accessToken']
+      ? (jwt.verify(
+          request.cookies['accessToken'],
+          this.configService.get('JWT_SECRET'),
+        ).sub as string)
+      : null;
+
+    return await this.matchesService.findMatches(keywords, userId);
   }
 
   @Get(':matchId')

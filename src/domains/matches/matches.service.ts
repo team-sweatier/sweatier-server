@@ -30,34 +30,10 @@ export class MatchesService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async findMatches(filters: FindMatchesDto, userId: string) {
-    const todayUTC = dayUtil.day().utc();
-    const endDateUTC = todayUTC.add(2, 'weeks');
+  async findMatches(filters: FindMatchesDto | string, userId: string) {
+    const filter: Prisma.MatchWhereInput = await this.getQueryFilter(filters);
 
-    const filter: Prisma.MatchWhereInput = {
-      matchDay: {
-        gte: todayUTC.toDate(),
-        lte: endDateUTC.toDate(),
-      },
-      ...(filters.date && {
-        matchDay: {
-          gte: dayUtil.day(filters.date).toDate(),
-          lt: dayUtil.day(filters.date).add(1, 'day').toDate(),
-        },
-      }),
-      ...(filters.region && { region: filters.region }),
-      ...(filters.sportType && { sportsType: { name: filters.sportType } }),
-      ...(filters.tier && { tier: { value: filters.tier } }),
-    };
-
-    const matches = await this.prismaService.match.findMany({
-      where: filter,
-      include: {
-        participants: { select: { id: true } },
-        tier: { select: { value: true } },
-        sportsType: { select: { name: true } },
-      },
-    });
+    const matches = await this.filterMatches(filter);
 
     const processedMatches = matches.map((match) => {
       const participating = userId
@@ -77,24 +53,45 @@ export class MatchesService {
     return processedMatches;
   }
 
-  async findMatchesByKeywords(keywords: string) {
-    const search = keywords
-      .split(' ')
-      .filter((keyword) => keyword)
-      .map((keyword) => `${keyword}:*`)
-      .join(' & ');
-
+  async getQueryFilter(filters: FindMatchesDto | string) {
     const [todayUTC, endDateUTC] = [
       dayUtil.day().utc(),
       dayUtil.day().utc().add(2, 'weeks'),
     ];
 
-    const filter = {
+    if (filters instanceof FindMatchesDto)
+      return {
+        matchDay: {
+          gte: todayUTC.toDate(),
+          lte: endDateUTC.toDate(),
+        },
+        ...(filters.date && {
+          matchDay: {
+            gte: dayUtil.day(filters.date).toDate(),
+            lt: dayUtil.day(filters.date).add(1, 'day').toDate(),
+          },
+        }),
+        ...(filters.region && { region: filters.region }),
+        ...(filters.sportType && {
+          sportsType: { name: filters.sportType },
+        }),
+        ...(filters.tier && { tier: { value: filters.tier } }),
+      };
+
+    const search = filters
+      .split(' ')
+      .filter((keyword) => keyword)
+      .map((keyword) => `${keyword}:*`)
+      .join(' & ');
+
+    return {
       matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
       OR: [{ title: { search } }, { content: { search } }],
     };
+  }
 
-    const matches = await this.prismaService.match.findMany({
+  async filterMatches(filter: Prisma.MatchWhereInput) {
+    return await this.prismaService.match.findMany({
       where: filter,
       include: {
         participants: { select: { id: true } },
@@ -102,13 +99,6 @@ export class MatchesService {
         sportsType: { select: { name: true } },
       },
     });
-
-    return matches.map((match) => ({
-      ...match,
-      applicants: match.participants.length,
-      tier: match.tier.value,
-      sportsType: match.sportsType.name,
-    }));
   }
 
   async findMatch(matchId: string, userId: string) {
@@ -130,6 +120,7 @@ export class MatchesService {
     const host = await this.prismaService.userProfile.findUnique({
       where: { userId: match.hostId },
     });
+
     const participating = match.participants.find(
       (participant) => participant.id === userId,
     )
