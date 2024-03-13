@@ -229,7 +229,7 @@ async function matchSeed(hostId: string) {
       tierId,
       title,
       content,
-      gender: getRandomGender(),
+      gender: getRandomGender(true),
       capability,
       latitude,
       longitude,
