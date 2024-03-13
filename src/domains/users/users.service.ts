@@ -217,6 +217,7 @@ export class UsersService {
       },
       select: {
         value: true,
+        raterId: true,
       },
     });
     return values.length > 0 ? values : [];
