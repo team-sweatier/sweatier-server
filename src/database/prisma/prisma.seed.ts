@@ -298,6 +298,6 @@ async function seed() {
   for (let k = 0; k < userArray.length; k++) {
     await participateSeed(userArray[k].userId);
   }
-  ratingSeed();
+  // ratingSeed();
 }
 seed();
