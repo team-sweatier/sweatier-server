@@ -42,7 +42,6 @@ export class MatchesService {
 
       return {
         ...match,
-        matchDay: new Date(),
         applicants: match.participants.length,
         tier: match.tier.value,
         sportsType: [match.sportsType.name, match.sportsType.rules],
@@ -138,7 +137,6 @@ export class MatchesService {
       hostBankName: host.bankName,
       hostAccountNumber: host.accountNumber,
       applicants: match.participants.length,
-      matchDay: new Date(),
       tierType: tier,
       sportType: sport,
       participating: participating,
