@@ -10,14 +10,11 @@ import {
   getRandomEmail,
   getRandomGender,
   getRandomImg,
-  getRandomMatchDay,
+  getRandomMatches,
   getRandomNickName,
   getRandomOneLiner,
   getRandomPhoneNumber,
   getRandomRating,
-  getRandomSports,
-  getRandomSportsTypeId,
-  getRandomTier,
   getRandomUserTier,
 } from './getRandomData';
 import { PrismaService } from './prisma.service';
@@ -36,7 +33,7 @@ const sportsTypes = [
     5. 교체와 위치: 경기 중에 선수 교체는 허용되지 않습니다. 서브와 리시브 위치는 점수에 따라 정해지며, 게임 중 이를 준수해야 합니다.
   `,
   },
-{
+  {
     name: 'baseball',
     rules: `1. 경기 진행: 야구는 9이닝으로 구성되며, 각 이닝은 공격과 수비로 나뉩니다. 팀마다 3아웃이 발생할 때까지 공격 기회를 가집니다.
     2. 경기장: 야구장은 내야와 외야, 그리고 홈 플레이트를 중심으로 하는 베이스(1루, 2루, 3루)로 구성됩니다.
@@ -104,18 +101,17 @@ const tiers = [
 //       await prismaService.sportsType.upsert({
 //         where: { name: sportType.name },
 //         update: {},
-//         create: { name: sportType.name },
+//         create: { name: sportType.name, rules: sportType.rules },
 //       });
 //     }),
 //   );
 // }
 async function sportTypeSeed() {
-
   for (const sportType of sportsTypes) {
     await prismaService.sportsType.upsert({
       where: { name: sportType.name },
       update: {},
-      create: { name: sportType.name },
+      create: { name: sportType.name, rules: sportType.rules },
     });
   }
 }
@@ -206,9 +202,10 @@ async function userSeed() {
 }
 
 async function matchSeed(hostId: string) {
-  const sportsTypeId = await getRandomSportsTypeId();
-
   const {
+    randomSportsTypeId,
+    randomDate,
+    tierId,
     title,
     content,
     capability,
@@ -217,9 +214,8 @@ async function matchSeed(hostId: string) {
     placeName,
     region,
     address,
-  } = getRandomSports(sportsTypeId);
-  const tierId = await getRandomTier(sportsTypeId, hostId);
-  const randomDate = new Date(getRandomMatchDay());
+  } = await getRandomMatches(hostId);
+
   const match = await prismaService.match.create({
     data: {
       id: nanoid(configService.get('NANOID_SIZE')),
@@ -229,7 +225,7 @@ async function matchSeed(hostId: string) {
           id: hostId,
         },
       },
-      sportsTypeId,
+      sportsTypeId: randomSportsTypeId,
       tierId,
       title,
       content,
