@@ -183,9 +183,7 @@ export class MatchesService {
       hostBankName: host.bankName,
       hostAccountNumber: host.accountNumber,
       applicants: match.participants.length,
-      matchDay: new Date(
-        match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
-      ),
+      matchDay: new Date(),
       tierType: tier,
       sportType: sport,
       participating: participating,
