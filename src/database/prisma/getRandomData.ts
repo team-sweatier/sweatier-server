@@ -105,11 +105,12 @@ const commonPlaceName = [
     address: '대전광역시 유성구 엑스포로 326 (원촌동)',
   },
   {
-    placeName: '하수 처리장 체육공원',
-    latitude: 36.3825189,
-    longitude: 127.4006599,
+
+    placeName: '안영 생활체육공원',
+    latitude: 36.2855308,
+    longitude: 127.3734355,
     region: '대전',
-    address: '대전광역시 유성구 엑스포로 326 (원촌동)',
+    address: '대전 중구 안영동 561-1',
   },
   {
     placeName: '정부세종청사 스포츠센터',
@@ -154,7 +155,7 @@ const commonPlaceName = [
     address: '대구 달성군 다사읍 다사로 441',
   },
   {
-    placeName: '대구성서산업단지관리공단 다목적체육관',
+    placeName: '대구 성서 산업단지관리공단 다목적체육관',
     latitude: 35.8321633,
     longitude: 128.4958238,
     region: '대구',
@@ -463,35 +464,3 @@ export function getRandomRating() {
   const rating = [1, 2, 3, 4, 5];
   return rating[getRandomIndex(rating.length)];
 }
-
-// export function getRandomDistrict() {
-//   const district = [
-//     '종로구',
-//     '중구',
-//     '용산구',
-//     '성동구',
-//     '광진구',
-//     '동대문구',
-//     '중랑구',
-//     '성북구',
-//     '강북구',
-//     '도봉구',
-//     '노원구',
-//     '은평구',
-//     '서대문구',
-//     '마포구',
-//     '양천구',
-//     '강서구',
-//     '구로구',
-//     '금천구',
-//     '영등포구',
-//     '동작구',
-//     '관악구',
-//     '서초구',
-//     '강남구',
-//     '송파구',
-//     '강동구',
-//   ];
-
-//   return district[getRandomIndex(district.length)];
-// }

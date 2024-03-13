@@ -1,4 +1,8 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
@@ -20,11 +24,14 @@ export class JwtManagerService implements OnModuleInit {
   }
 
   async verifyAccessToken(accessToken: string) {
-    const { sub: id, accountType } = verify(
-      accessToken,
-      this.secretKey,
-    ) as JwtPayload;
-
-    return { id, accountTypeOfToken: accountType };
+    try {
+      const { sub: id, accountType } = verify(
+        accessToken,
+        this.secretKey,
+      ) as JwtPayload;
+      return { id, accountTypeOfToken: accountType };
+    } catch (e) {
+      throw new UnauthorizedException('JWT 토큰이 만료되었습니다.');
+    }
   }
 }
