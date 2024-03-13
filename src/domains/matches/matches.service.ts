@@ -28,6 +28,7 @@ export class MatchesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
+  ) {}
 
   async findMatches(filters: FindMatchesDto, userId: string) {
     const todayUTC = dayUtil.day().utc();
@@ -58,7 +59,6 @@ export class MatchesService {
       },
     });
 
-
     const processedMatches = matches.map((match) => {
       const participating = userId
         ? match.participants.some((participant) => participant.id === userId)
@@ -66,9 +66,7 @@ export class MatchesService {
 
       return {
         ...match,
-        matchDay: new Date(
-          match.matchDay.getTime() + KST_OFFSET_HOURS * 60 * 60 * 1000,
-        ),
+        matchDay: new Date(),
         applicants: match.participants.length,
         tier: match.tier.value,
         sportsType: match.sportsType.name,
