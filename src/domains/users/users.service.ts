@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { User } from '@prisma/client';
+import { Match, User } from '@prisma/client';
 import { compare, hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
@@ -189,24 +189,39 @@ export class UsersService {
     };
   }
 
-  async getAppliedMatches(userId: string, timePassed: boolean) {
-    const now = new Date();
-    const matchDayCondition = timePassed ? { lte: now } : { gt: now };
-
-    const user = await this.prismaService.user.findMany({
+  /**
+   * 1. 유저가 참가했던 매치를 모두 불러와.
+   * 2. 가장 최근 매치를 찾아.
+   * 3. 여기에 평가를 했는지를 찾아. 있으면 true/ 평가를 안했으면 false
+   *  */
+  async getUserLatestMatch(userId: string) {
+    const nowDate = new Date();
+    const latestMatch = await this.prismaService.match.findFirst({
       where: {
-        id: userId,
-      },
-      include: {
-        participatingMatches: {
-          where: {
-            matchDay: matchDayCondition,
+        participants: {
+          some: {
+            id: userId,
           },
         },
+        matchDay: { lt: nowDate },
+      },
+      orderBy: {
+        matchDay: 'desc',
       },
     });
+    return latestMatch;
+  }
 
-    return user.length > 0 ? user[0].participatingMatches : [];
+  async getHasUserRated(userId: string, latestMatch: Match) {
+    const userRateInLatestMatch = await this.prismaService.rating.findFirst({
+      where: {
+        raterId: userId,
+        matchId: latestMatch.id,
+      },
+    });
+    const hasUserRated = !!userRateInLatestMatch;
+
+    return hasUserRated;
   }
 
   async getUserMatchRates(userId: string, matchId: string) {
@@ -217,6 +232,7 @@ export class UsersService {
       },
       select: {
         value: true,
+        raterId: true,
       },
     });
     return values.length > 0 ? values : [];

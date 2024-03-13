@@ -10,6 +10,8 @@ export const UNAUTHORIZED = '권한이 없습니다.';
 
 export const INVALID_MATCH = '존재하지 않는 경기입니다.';
 
+export const NO_MATCHES_FOUND = '최신 매치가 없습니다.';
+
 export const INVALID_GENDER = '성별이 일치하지 않습니다.';
 
 export const MAX_PARTICIPANTS_REACHED = '가능한 인원을 초과하였습니다.';

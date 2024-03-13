@@ -105,6 +105,7 @@ const commonPlaceName = [
     address: '대전광역시 유성구 엑스포로 326 (원촌동)',
   },
   {
+
     placeName: '안영 생활체육공원',
     latitude: 36.2855308,
     longitude: 127.3734355,
