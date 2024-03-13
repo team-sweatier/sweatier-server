@@ -11,6 +11,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma/prisma.service';
@@ -30,17 +32,28 @@ import {
   UpdateMatchDto,
 } from './matches.dto';
 import { MatchesService } from './matches.service';
+import { Request } from 'express';
+import * as jwt from 'jsonwebtoken';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('matches')
 export class MatchesController {
   constructor(
     private readonly matchesService: MatchesService,
     private readonly prismaService: PrismaService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) { }
 
   @Get()
-  async findMatches(@Query() filters: FindMatchesDto) {
-    return await this.matchesService.findMatches(filters);
+  async findMatches(@Query() filters: FindMatchesDto, @Req() request: Request) {
+    const userId = request.cookies['accessToken']
+      ? (jwt.verify(
+          request.cookies['accessToken'],
+          this.configService.get('JWT_SECRET'),
+        ).sub as string)
+      : null;
+
+    return await this.matchesService.findMatches(filters, userId);
   }
 
   @Get('/search')
@@ -49,10 +62,7 @@ export class MatchesController {
   }
 
   @Get(':matchId')
-  async findMatch(
-    @Param('matchId') matchId: string,
-    @DAccount('user') user: User,
-  ) {
+  async findMatch(@Param('matchId') matchId: string, @Req() request: Request) {
     const match = await this.prismaService.match.findUnique({
       where: { id: matchId },
     });
@@ -61,7 +71,14 @@ export class MatchesController {
       throw new NotFoundException(INVALID_MATCH);
     }
 
-    return await this.matchesService.findMatch(matchId);
+    const userId = request.cookies['accessToken']
+      ? (jwt.verify(
+          request.cookies['accessToken'],
+          this.configService.get('JWT_SECRET'),
+        ).sub as string)
+      : null;
+
+    return await this.matchesService.findMatch(matchId, userId);
   }
 
   @Post()
@@ -77,7 +94,7 @@ export class MatchesController {
     @Param('matchId') matchId: string,
     @Body() dto: UpdateMatchDto,
   ) {
-    const match = await this.matchesService.findMatch(matchId);
+    const match = await this.matchesService.findMatch(matchId, user.id);
 
     if (!match) throw new NotFoundException(INVALID_MATCH);
 
