@@ -217,14 +217,13 @@ export class UsersController {
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
 
     if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
-      const daysSinceLastUpdate = dayUtil
-        .day()
-        .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
-      if (
-        daysSinceLastUpdate < 30 &&
-        profile.nickName !== editProfileDto.nickName
-      )
-        throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
+      if (profile.nickName !== editProfileDto.nickName) {
+        const daysSinceLastUpdate = dayUtil
+          .day()
+          .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
+        if (daysSinceLastUpdate < 30)
+          throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
+      }
     }
 
     if (editProfileDto.phoneNumber) {
@@ -264,8 +263,7 @@ export class UsersController {
   @Private('user')
   @Put('favorite')
   async editUserFavorite(
-    @Body()
-    editFavoriteDto: EditFavoriteDto,
+    @Body() editFavoriteDto: EditFavoriteDto,
     @DAccount('user') user: User,
   ) {
     return await this.usersService.editUserFavorite(user.id, editFavoriteDto);
