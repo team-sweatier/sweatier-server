@@ -130,6 +130,10 @@ export class UsersService {
     editProfileDto: EditProfileDto,
     file?: Express.Multer.File,
   ) {
+    const existingProfile = await this.prismaService.userProfile.findUnique({
+      where: { userId: userId },
+    });
+
     const isNicknameUpdated = editProfileDto.nickName !== undefined;
 
     let imageUrl: string | undefined;
@@ -139,9 +143,10 @@ export class UsersService {
 
     const data = {
       ...editProfileDto,
-      ...(isNicknameUpdated && {
-        nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
-      }),
+      ...(isNicknameUpdated &&
+        existingProfile.nickName !== editProfileDto.nickName && {
+          nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
+        }),
     };
 
     const editedProfile = await this.prismaService.userProfile.update({

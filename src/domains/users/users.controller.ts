@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -31,6 +32,7 @@ import {
   DUPLICATE_USER,
   FOUND_PROFILE,
   INVALID_CHANGE_NICKNAME,
+  INVALID_NICKNAME,
   INVALID_USER_CREDENTIAL,
   NOT_ALLOWED_USER,
   NOT_FOUND_PROFILE,
@@ -214,14 +216,15 @@ export class UsersController {
     const profile = await this.usersService.findProfileByUserId(user.id);
 
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
-    else if (profile.userId !== user.id)
-      throw new ForbiddenException(NOT_ALLOWED_USER);
 
     if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
       const daysSinceLastUpdate = dayUtil
         .day()
         .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
-      if (daysSinceLastUpdate < 30)
+      if (
+        daysSinceLastUpdate < 30 &&
+        profile.nickName !== editProfileDto.nickName
+      )
         throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
     }
 
@@ -239,7 +242,7 @@ export class UsersController {
       const duplicateNickname = await this.usersService.findProfileByNickname(
         editProfileDto.nickName,
       );
-      if (duplicateNickname) {
+      if (duplicateNickname && profile.nickName !== editProfileDto.nickName) {
         throw new ConflictException(DUPLICATE_NICKNAME);
       }
     }
