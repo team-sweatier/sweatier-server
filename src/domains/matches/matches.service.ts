@@ -112,6 +112,7 @@ export class MatchesService {
         },
         tier: { select: { value: true } },
         sportsType: { select: { name: true, rules: true } },
+        host: { select: { id: true } },
       },
     });
 
@@ -128,16 +129,8 @@ export class MatchesService {
     const tier = match.tier.value;
     const sport = [match.sportsType.name, match.sportsType.rules];
 
-    const matchResult = {
-      ...match,
-      participate: match.participants.map((participant) => ({
-        id: participant.id,
-        nickName: participant.userProfile.nickName,
-      })),
-    };
-
     const result = {
-      ...matchResult,
+      ...match,
       address: match.address,
       hostId: host.userId,
       hostNickname: host.nickName,
@@ -149,6 +142,9 @@ export class MatchesService {
       tierType: tier,
       sportType: sport,
       participating: participating,
+      hostProfileImgSrc:
+        'https://storage.googleapis.com/sweatier-user-profile-image/' +
+        host.userId,
     };
 
     return result;
@@ -189,11 +185,29 @@ export class MatchesService {
     return match;
   }
 
-  async editMatch(matchId: string, data: UpdateMatchDto) {
-    return await this.prismaService.match.update({
+  async editMatch(matchId: string, updateMatchDto: UpdateMatchDto) {
+    const data: any = { ...updateMatchDto };
+    if (updateMatchDto.sportsTypeName) {
+      const sportsType = await this.prismaService.sportsType.findUnique({
+        where: { name: updateMatchDto.sportsTypeName },
+      });
+
+      if (!sportsType) {
+        throw new Error('SportsType not found');
+      }
+
+      data.sportsType = {
+        connect: { id: sportsType.id },
+      };
+      delete data.sportsTypeName;
+    }
+
+    const updatedMatch = await this.prismaService.match.update({
       where: { id: matchId },
-      data,
+      data: data,
     });
+
+    return updatedMatch;
   }
 
   async deleteMatch(matchId: string) {
@@ -281,6 +295,7 @@ export class MatchesService {
       },
     });
   }
+
   async ratePlayer(matchId: string, raterId: string, data: ParticipantRating) {
     const id = nanoid(this.configService.get('NANOID_SIZE'));
     return await this.prismaService.rating.create({
