@@ -1,5 +1,5 @@
 import { Gender } from '@prisma/client';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsArray, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 import {
   BANK_INFO_NEEDED,
   GENDER_TYPE_NEEDED,
@@ -103,5 +103,7 @@ export class EditProfileDto {
 }
 
 export class EditFavoriteDto {
+  @IsNotEmpty()
+  @IsArray()
   sportsType: string[];
 }

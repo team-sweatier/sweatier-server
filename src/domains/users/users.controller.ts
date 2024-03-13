@@ -267,6 +267,7 @@ export class UsersController {
     @Body() editFavoriteDto: EditFavoriteDto,
     @DAccount('user') user: User,
   ) {
+    console.log(editFavoriteDto)
     return await this.usersService.editUserFavorite(user.id, editFavoriteDto);
   }
 
