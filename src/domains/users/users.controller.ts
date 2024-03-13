@@ -59,7 +59,7 @@ export class UsersController {
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      //maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
       ...(this.configService.get('NODE_ENV') === 'production' && {
@@ -215,8 +215,6 @@ export class UsersController {
     const profile = await this.usersService.findProfileByUserId(user.id);
 
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
-    else if (profile.userId !== user.id)
-      throw new ForbiddenException(NOT_ALLOWED_USER);
 
     if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
       const daysSinceLastUpdate = dayUtil
