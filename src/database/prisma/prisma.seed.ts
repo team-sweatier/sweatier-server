@@ -27,11 +27,11 @@ const configService = new ConfigService();
 const storageService = new GCSService(configService);
 
 const sportsTypes = [
-  { name: 'tennis' },
-  { name: 'soccer' },
-  { name: 'basketball' },
-  { name: 'baseball' },
   { name: 'badminton' },
+  { name: 'baseball' },
+  { name: 'tennis' },
+  { name: 'basketball' },
+  { name: 'soccer' },
 ];
 
 const tiers = [
@@ -58,16 +58,25 @@ const tiers = [
   },
 ];
 
+// async function sportTypeSeed() {
+//   await Promise.all(
+//     sportsTypes.map(async (sportType) => {
+//       await prismaService.sportsType.upsert({
+//         where: { name: sportType.name },
+//         update: {},
+//         create: { name: sportType.name },
+//       });
+//     }),
+//   );
+// }
 async function sportTypeSeed() {
-  await Promise.all(
-    sportsTypes.map(async (sportType) => {
-      await prismaService.sportsType.upsert({
-        where: { name: sportType.name },
-        update: {},
-        create: { name: sportType.name },
-      });
-    }),
-  );
+  for (const sportType of sportsTypes) {
+    await prismaService.sportsType.upsert({
+      where: { name: sportType.name },
+      update: {},
+      create: { name: sportType.name },
+    });
+  }
 }
 
 async function tierSeed() {
@@ -288,10 +297,10 @@ async function ratingSeed() {
 async function seed() {
   const userArray: UserProfile[] = [];
   await sportTypeSeed().then(tierSeed);
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 100; i++) {
     const userProfile = await userSeed();
     userArray.push(userProfile);
-    for (let j = 0; j < 2; j++) {
+    for (let j = 0; j < 3; j++) {
       await matchSeed(userProfile.userId);
     }
   }

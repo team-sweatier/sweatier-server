@@ -55,6 +55,209 @@ const commonPlaceName = [
     region: '서울',
     address: '서울특별시 광진구 강변북로 2273 (자양동)',
   },
+  {
+    placeName: '남산 근린공원',
+    latitude: 36.4026965,
+    longitude: 128.1534969,
+    region: '경기',
+    address: '경기 용인시 기흥구 서천동 802',
+  },
+  {
+    placeName: '나곡 체육공원',
+    latitude: 37.2552892,
+    longitude: 127.1172788,
+    region: '경기',
+    address: '경기 용인시 기흥구 보라동 661',
+  },
+  {
+    placeName: '삼산건강공원',
+    latitude: 37.5173815,
+    longitude: 126.7494593,
+    region: '인천',
+    address: '인천 부평구 영성동로18번길 48',
+  },
+  {
+    placeName: '열우물 경기장',
+    latitude: 37.4800962,
+    longitude: 126.6919311,
+    region: '인천',
+    address: '인천 부평구 열우물로 164',
+  },
+  {
+    placeName: '열우물 경기장',
+    latitude: 37.3328625,
+    longitude: 127.9944193,
+    region: '강원',
+    address: '강원 원주시 봉대길 108',
+  },
+  {
+    placeName: '강릉 종합 운동장',
+    latitude: 37.7731778,
+    longitude: 128.8974154,
+    region: '강원',
+    address: '강원특별자치도 강릉시 종합운동장길 69',
+  },
+  {
+    placeName: '하수 처리장 체육공원',
+    latitude: 36.3825189,
+    longitude: 127.4006599,
+    region: '대전',
+    address: '대전광역시 유성구 엑스포로 326 (원촌동)',
+  },
+  {
+    placeName: '안영 생활체육공원',
+    latitude: 36.2855308,
+    longitude: 127.3734355,
+    region: '대전',
+    address: '대전 중구 안영동 561-1',
+  },
+  {
+    placeName: '정부세종청사 스포츠센터',
+    latitude: 36.5061727,
+    longitude: 127.2576447,
+    region: '세종',
+    address: '세종 다솜1로 93',
+  },
+  {
+    placeName: '천안 종합운동장',
+    latitude: 36.8190769,
+    longitude: 127.1148783,
+    region: '충남',
+    address: '충남 천안시 서북구 번영로 208 종합운동장',
+  },
+  {
+    placeName: '이순신 종합운동장',
+    latitude: 36.7681453,
+    longitude: 127.0212148,
+    region: '충남',
+    address: '충남 아산시 남부로 370-24 이순신종합운동장',
+  },
+  {
+    placeName: '꽃재공원',
+    latitude: 36.620297,
+    longitude: 127.4387291,
+    region: '충북',
+    address: '충북 청주시 흥덕구 장구봉로42번길 42',
+  },
+  {
+    placeName: '제천 체육관',
+    latitude: 37.1308908,
+    longitude: 128.2151624,
+    region: '충북',
+    address: '충북 제천시 숭의로 85 제천시민광장',
+  },
+  {
+    placeName: '다사체육공원',
+    latitude: 35.8905147,
+    longitude: 128.4789835,
+    region: '대구',
+    address: '대구 달성군 다사읍 다사로 441',
+  },
+  {
+    placeName: '대구 성서 산업단지관리공단 다목적체육관',
+    latitude: 35.8321633,
+    longitude: 128.4958238,
+    region: '대구',
+    address: '대구 달서구 성서공단로22길 25',
+  },
+  {
+    placeName: '경산 생활체육공원',
+    latitude: 35.8201689,
+    longitude: 128.7461845,
+    region: '경북',
+    address: '경북 경산시 상방동 9',
+  },
+  {
+    placeName: '경주 안강 생활체육공원',
+    latitude: 35.9857149,
+    longitude: 129.2170773,
+    region: '경북',
+    address: '경북 경주시 안강읍 근계리 1418-474',
+  },
+  {
+    placeName: '강서 체육공원',
+    latitude: 35.209732,
+    longitude: 128.9738117,
+    region: '부산',
+    address: '부산 강서구 체육공원로 43',
+  },
+  {
+    placeName: '구덕 공설운동장',
+    latitude: 35.1161439,
+    longitude: 129.0150323,
+    region: '부산',
+    address: '부산 서구 망양로 57',
+  },
+  {
+    placeName: '문수 국제경기장',
+    latitude: 35.5322127,
+    longitude: 129.271055,
+    region: '울산',
+    address: '울산 남구 남부순환도로 209',
+  },
+  {
+    placeName: '야음 운동장',
+    latitude: 35.5281523,
+    longitude: 129.3368243,
+    region: '울산',
+    address: '울산 남구 화합로31번길 66',
+  },
+  {
+    placeName: '어방 체육공원',
+    latitude: 35.2420884,
+    longitude: 128.8979935,
+    region: '경남',
+    address: '경남 김해시 어방동 657',
+  },
+  {
+    placeName: '가마실공원',
+    latitude: 35.2022208,
+    longitude: 128.8007183,
+    region: '경남',
+    address: '경남 김해시 월산로 111-82',
+  },
+  {
+    placeName: '광주 체육회관',
+    latitude: 35.1187005,
+    longitude: 126.8822462,
+    region: '광주',
+    address: '광주 서구 금화로278(풍암동 423-2)',
+  },
+  {
+    placeName: '빛고을체육관',
+    latitude: 35.13336080000001,
+    longitude: 126.8778261,
+    region: '광주',
+    address: '광주 서구 금화로 278',
+  },
+  {
+    placeName: '무안 스포츠 파크',
+    latitude: 35.0164047,
+    longitude: 126.4271698,
+    region: '전남',
+    address: '전남 무안군 현경면 공항로 345',
+  },
+  {
+    placeName: '중마 근린공원',
+    latitude: 34.9427229,
+    longitude: 127.6968132,
+    region: '전남',
+    address: '전남 광양시 중동 1320',
+  },
+  {
+    placeName: '순창 공설운동장',
+    latitude: 35.3699652,
+    longitude: 127.1287642,
+    region: '전북',
+    address: '전북 순창군 순창읍 교성리 196-25',
+  },
+  {
+    placeName: '성산 국민체육센터',
+    latitude: 33.4672487,
+    longitude: 126.9055504,
+    region: '제주',
+    address: '제주 서귀포시 성산읍 일주동로 4024',
+  },
 ];
 const specificPlaceNames = {
   1: [
@@ -184,11 +387,15 @@ export function getRandomAccountNumber() {
 }
 
 export function getRandomMatchDay() {
-  const startDate = new Date(2024, 1, 15);
-  const endDate = new Date(2024, 3, 1);
+  const startDate = new Date(2024, 2, 6);
+  const endDate = new Date(2024, 2, 27);
 
   const randomDate = faker.date.between({ from: startDate, to: endDate });
 
+  const randomHour = faker.number.int({ min: 6, max: 23 });
+  const randomMin = faker.number.int({ min: 0, max: 1 }) * 30;
+
+  randomDate.setHours(randomHour, randomMin, 0);
   return randomDate;
 }
 
@@ -256,35 +463,3 @@ export function getRandomRating() {
   const rating = [1, 2, 3, 4, 5];
   return rating[getRandomIndex(rating.length)];
 }
-
-// export function getRandomDistrict() {
-//   const district = [
-//     '종로구',
-//     '중구',
-//     '용산구',
-//     '성동구',
-//     '광진구',
-//     '동대문구',
-//     '중랑구',
-//     '성북구',
-//     '강북구',
-//     '도봉구',
-//     '노원구',
-//     '은평구',
-//     '서대문구',
-//     '마포구',
-//     '양천구',
-//     '강서구',
-//     '구로구',
-//     '금천구',
-//     '영등포구',
-//     '동작구',
-//     '관악구',
-//     '서초구',
-//     '강남구',
-//     '송파구',
-//     '강동구',
-//   ];
-
-//   return district[getRandomIndex(district.length)];
-// }
