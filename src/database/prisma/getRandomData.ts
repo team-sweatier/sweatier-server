@@ -55,6 +55,118 @@ const commonPlaceName = [
     region: '서울',
     address: '서울특별시 광진구 강변북로 2273 (자양동)',
   },
+  {
+    placeName: '남산 근린공원',
+    latitude: 36.4026965,
+    longitude: 128.1534969,
+    region: '경기',
+    address: '경기 용인시 기흥구 서천동 802',
+  },
+  {
+    placeName: '나곡 체육공원',
+    latitude: 37.2552892,
+    longitude: 127.1172788,
+    region: '경기',
+    address: '경기 용인시 기흥구 보라동 661',
+  },
+  {
+    placeName: '삼산건강공원',
+    latitude: 37.5173815,
+    longitude: 126.7494593,
+    region: '인천',
+    address: '인천 부평구 영성동로18번길 48',
+  },
+  {
+    placeName: '열우물 경기장',
+    latitude: 37.4800962,
+    longitude: 126.6919311,
+    region: '인천',
+    address: '인천 부평구 열우물로 164',
+  },
+  {
+    placeName: '열우물 경기장',
+    latitude: 37.3328625,
+    longitude: 127.9944193,
+    region: '강원',
+    address: '강원 원주시 봉대길 108',
+  },
+  {
+    placeName: '강릉 종합 운동장',
+    latitude: 37.7731778,
+    longitude: 128.8974154,
+    region: '강원',
+    address: '강원특별자치도 강릉시 종합운동장길 69',
+  },
+  {
+    placeName: '하수 처리장 체육공원',
+    latitude: 36.3825189,
+    longitude: 127.4006599,
+    region: '대전',
+    address: '대전광역시 유성구 엑스포로 326 (원촌동)',
+  },
+  {
+    placeName: '하수 처리장 체육공원',
+    latitude: 36.3825189,
+    longitude: 127.4006599,
+    region: '대전',
+    address: '대전광역시 유성구 엑스포로 326 (원촌동)',
+  },
+  {
+    placeName: '정부세종청사 스포츠센터',
+    latitude: 36.5061727,
+    longitude: 127.2576447,
+    region: '세종',
+    address: '세종 다솜1로 93',
+  },
+  {
+    placeName: '천안 종합운동장',
+    latitude: 36.8190769,
+    longitude: 127.1148783,
+    region: '충남',
+    address: '충남 천안시 서북구 번영로 208 종합운동장',
+  },
+  {
+    placeName: '이순신 종합운동장',
+    latitude: 36.7681453,
+    longitude: 127.0212148,
+    region: '충남',
+    address: '충남 아산시 남부로 370-24 이순신종합운동장',
+  },
+  {
+    placeName: '꽃재공원',
+    latitude: 36.620297,
+    longitude: 127.4387291,
+    region: '충북',
+    address: '충북 청주시 흥덕구 장구봉로42번길 42',
+  },
+  {
+    placeName: '제천 체육관',
+    latitude: 37.1308908,
+    longitude: 128.2151624,
+    region: '충북',
+    address: '충북 제천시 숭의로 85 제천시민광장',
+  },
+  {
+    placeName: '다사체육공원',
+    latitude: 35.8905147,
+    longitude: 128.4789835,
+    region: '대구',
+    address: '대구 달성군 다사읍 다사로 441',
+  },
+  {
+    placeName: '대구성서산업단지관리공단 다목적체육관',
+    latitude: 35.8321633,
+    longitude: 128.4958238,
+    region: '대구',
+    address: '대구 달서구 성서공단로22길 25',
+  },
+  {
+    placeName: '경산 생활체육공원',
+    latitude: 35.8201689,
+    longitude: 128.7461845,
+    region: '경북',
+    address: '경북 경산시 상방동 9',
+  },
 ];
 const specificPlaceNames = {
   1: [
@@ -184,11 +296,15 @@ export function getRandomAccountNumber() {
 }
 
 export function getRandomMatchDay() {
-  const startDate = new Date(2024, 1, 15);
-  const endDate = new Date(2024, 3, 1);
+  const startDate = new Date(2024, 2, 6);
+  const endDate = new Date(2024, 2, 27);
 
   const randomDate = faker.date.between({ from: startDate, to: endDate });
 
+  const randomHour = faker.number.int({ min: 6, max: 23 });
+  const randomMin = faker.number.int({ min: 0, max: 1 }) * 30;
+
+  randomDate.setHours(randomHour, randomMin, 0);
   return randomDate;
 }
 
