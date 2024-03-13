@@ -8,4 +8,9 @@ export class TiersController {
   getTiers() {
     return this.tiersService.getTiers();
   }
+
+  @Get('fetch')
+  fetchTiers() {
+    return this.tiersService.fetchTiers();
+  }
 }
