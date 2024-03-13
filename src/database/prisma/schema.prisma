@@ -119,12 +119,13 @@ model Rating {
 }
 
 model SportsType {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  rules String
 
   tier   Tier[]
   match  Match[]
-  likers User[]   @relation(name: "likerSportsType")
+  likers User[]  @relation(name: "likerSportsType")
 }
 
 enum Gender {

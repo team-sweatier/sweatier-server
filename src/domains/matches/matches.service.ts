@@ -45,14 +45,13 @@ export class MatchesService {
         matchDay: new Date(),
         applicants: match.participants.length,
         tier: match.tier.value,
-        sportsType: match.sportsType.name,
+        sportsType: [match.sportsType.name, match.sportsType.rules],
         participating: participating,
       };
     });
 
     return processedMatches;
   }
-
   async getQueryFilter(filters: FindMatchesDto | string) {
     const [todayUTC, endDateUTC] = [
       dayUtil.day().utc(),
@@ -96,7 +95,7 @@ export class MatchesService {
       include: {
         participants: { select: { id: true } },
         tier: { select: { value: true } },
-        sportsType: { select: { name: true } },
+        sportsType: { select: { name: true, rules: true } },
       },
     });
   }
@@ -112,7 +111,7 @@ export class MatchesService {
           },
         },
         tier: { select: { value: true } },
-        sportsType: { select: { name: true } },
+        sportsType: { select: { name: true, rules: true } },
       },
     });
 
@@ -127,7 +126,7 @@ export class MatchesService {
       : false;
 
     const tier = match.tier.value;
-    const sport = match.sportsType.name;
+    const sport = [match.sportsType.name, match.sportsType.rules];
 
     const matchResult = {
       ...match,
