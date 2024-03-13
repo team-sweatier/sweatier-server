@@ -130,11 +130,18 @@ export class UsersService {
     editProfileDto: EditProfileDto,
     file?: Express.Multer.File,
   ) {
-    const existingProfile = await this.prismaService.userProfile.findUnique({
-      where: { userId: userId },
-    });
+    const existingProfile = await this.findProfileByUserId(userId);
 
-    const isNicknameUpdated = editProfileDto.nickName !== undefined;
+    if (
+      editProfileDto.nickName !== existingProfile.nickName &&
+      editProfileDto.nickName !== undefined
+    ) {
+      existingProfile.nickNameUpdatedAt = dayUtil.day().add(30, 'day').toDate();
+    }
+
+    const isNicknameUpdated =
+      editProfileDto.nickName !== undefined &&
+      editProfileDto.nickName !== existingProfile.nickName;
 
     let imageUrl: string | undefined;
     if (file) {
@@ -143,10 +150,9 @@ export class UsersService {
 
     const data = {
       ...editProfileDto,
-      ...(isNicknameUpdated &&
-        existingProfile.nickName !== editProfileDto.nickName && {
-          nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
-        }),
+      ...(isNicknameUpdated && {
+        nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
+      }),
     };
 
     const editedProfile = await this.prismaService.userProfile.update({
@@ -163,8 +169,8 @@ export class UsersService {
       },
     });
 
+    console.log(sportsTypes);
     if (sportsTypes.length !== editFavoriteDto.sportsType.length) {
-      //DTO 의 스포츠 타입이 DB의 스포츠 타입 시드데이터에 다 일치하게 존재하는지 검사
       throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
     } else {
       await this.prismaService.user.update({
