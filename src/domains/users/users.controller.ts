@@ -57,7 +57,7 @@ export class UsersController {
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+//      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
       ...(this.configService.get('NODE_ENV') === 'production' && {

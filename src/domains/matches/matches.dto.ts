@@ -43,14 +43,9 @@ export class CreateMatchDto {
   @Min(2, { message: INVALID_CAPABILITY })
   capability: number;
 
-  // @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
-  // sportsTypeId: number;
   @IsString()
   @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
   sportsTypeName: string;
-
-  // @IsNotEmpty({ message: CHOOSE_TIER })
-  // tierId: string;
 
   @IsNumber()
   latitude: number;
@@ -78,39 +73,43 @@ export class UpdateMatchDto {
   @IsString()
   @IsOptional()
   @MinLength(5, { message: INVALID_TITLE })
-  title?: string;
+  title: string;
 
   @IsString()
   @IsOptional()
   @MinLength(10, { message: INVALID_CONTENT })
-  content?: string;
+  content: string;
 
   @IsOptional()
   @IsEnum(Gender, { message: CHOOSE_GENDER })
-  gender?: Gender;
+  gender: Gender;
 
   @IsNumber()
   @IsOptional()
   @Min(2, { message: INVALID_CAPABILITY })
-  capability?: number;
+  capability: number;
 
   @IsOptional()
   @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
-  sportsTypeId?: number;
+  sportsTypeName: string;
 
+  @IsNumber()
   @IsOptional()
-  @IsNotEmpty({ message: CHOOSE_TIER })
-  tierId?: string;
+  latitude: number;
+
+  @IsNumber()
+  @IsOptional()
+  longitude: number;
 
   @IsString()
   @IsOptional()
   @MinLength(1, { message: INVALID_PLACENAME })
-  placeName?: string;
+  placeName: string;
 
   @IsString()
   @IsOptional()
   @MinLength(2, { message: INVALID_REGION })
-  region?: string;
+  region: string;
 
   @IsString()
   @IsOptional()
@@ -119,7 +118,7 @@ export class UpdateMatchDto {
 
   @IsOptional()
   @IsDateString()
-  matchDay?: Date;
+  matchDay: Date;
 }
 
 export class ParticipantRating {
