@@ -4,7 +4,7 @@ import { Gender } from '@prisma/client';
 import { PrismaService } from './prisma.service';
 
 const prismaService = new PrismaService();
-
+const sportsNameToIdMap = {};
 const commonPlaceName = [
   {
     placeName: '반포 종합운동장',
@@ -105,7 +105,6 @@ const commonPlaceName = [
     address: '대전광역시 유성구 엑스포로 326 (원촌동)',
   },
   {
-
     placeName: '안영 생활체육공원',
     latitude: 36.2855308,
     longitude: 127.3734355,
@@ -261,14 +260,14 @@ const commonPlaceName = [
   },
 ];
 const specificPlaceNames = {
-  1: [
+  badminton: [
     '배드민턴장 1번 코트',
     '배드민턴장 2번 코트',
     '배드민턴장 3번 코트',
     '배드민턴장 4번 코트',
   ],
-  2: ['성인야구장', '리틀야구장', '야구장'],
-  3: [
+  baseball: ['성인야구장', '리틀야구장', '야구장'],
+  tennis: [
     '소프트 테니스장',
     '테니스장 1번코트',
     '테니스장 2번코트',
@@ -279,8 +278,8 @@ const specificPlaceNames = {
     '테니스장 B코트',
     '테니스장 C코트',
   ],
-  4: ['농구장1', '농구장2', '농구장3', '농구장4'],
-  5: [
+  basketball: ['농구장1', '농구장2', '농구장3', '농구장4'],
+  soccer: [
     'EA SPORTS FC(더에프필드)',
     '축구장',
     '월드컵 보조경기장',
@@ -291,11 +290,11 @@ const specificPlaceNames = {
 };
 
 const sportsCapabilities = {
-  1: [2, 4],
-  2: [16, 18, 20],
-  3: [2, 4],
-  4: [6, 8, 10],
-  5: [10, 12, 14, 16, 18, 20, 22],
+  badminton: [2, 4],
+  baseball: [16, 18, 20],
+  tennis: [2, 4],
+  basketball: [6, 8, 10],
+  soccer: [10, 12, 14, 16, 18, 20, 22],
 };
 
 const oneLiners = [
@@ -329,21 +328,34 @@ export function getRandomEmail() {
 }
 
 export async function getRandomUserTier() {
-  const tiers = await prismaService.tier.findMany();
   const randomTiers = [];
-  for (let sportsTypeId = 1; sportsTypeId <= 5; sportsTypeId++) {
+  const sportsTypes = await prismaService.sportsType.findMany({
+    select: { id: true },
+  });
+  const tiers = await prismaService.tier.findMany();
+
+  sportsTypes.forEach((sportsType) => {
     const filteredTiers = tiers.filter(
-      (tier) => tier.sportsTypeId === sportsTypeId,
+      (tier) => tier.sportsTypeId === sportsType.id,
     );
+
     if (filteredTiers.length > 0) {
       randomTiers.push(filteredTiers[getRandomIndex(filteredTiers.length)]);
     }
-  }
+  });
+
   return randomTiers;
 }
 
-export function getRandomGender(): Gender {
-  const genders: Gender[] = [Gender.male, Gender.female, Gender.both];
+// export function getRandomGender(): Gender {
+//   const genders: Gender[] = [Gender.male, Gender.female, Gender.both];
+//   return genders[getRandomIndex(genders.length)];
+// }
+export function getRandomGender(includeBoth: boolean = false): Gender {
+  let genders: Gender[] = [Gender.male, Gender.female];
+  if (includeBoth) {
+    genders.push(Gender.both);
+  }
   return genders[getRandomIndex(genders.length)];
 }
 
@@ -387,6 +399,8 @@ export function getRandomAccountNumber() {
   return accountNumber;
 }
 
+// 매치 관련 로직
+
 export function getRandomMatchDay() {
   const startDate = new Date(2024, 2, 6);
   const endDate = new Date(2024, 2, 27);
@@ -400,29 +414,30 @@ export function getRandomMatchDay() {
   return randomDate;
 }
 
-export async function getRandomSportsTypeId() {
+async function fetchSportsTypesAndCreateMapping() {
   const sportsTypes = await prismaService.sportsType.findMany({
     select: { id: true, name: true },
   });
-  const sportsNameToTypeId = {
-    badminton: 1,
-    baseball: 2,
-    tennis: 3,
-    basketball: 4,
-    soccer: 5,
-  };
-
-  const randomSportsTypeName =
-    sportsTypes[getRandomIndex(sportsTypes.length)].name;
-  return sportsNameToTypeId[randomSportsTypeName];
+  sportsTypes.forEach((type) => {
+    sportsNameToIdMap[type.name] = type.id;
+  });
+}
+// 랜덤 스포츠 아이디 나옴
+export async function getRandomSportsTypeName() {
+  if (Object.keys(sportsNameToIdMap).length === 0) {
+    await fetchSportsTypesAndCreateMapping();
+  }
+  const sportsTypes = Object.keys(sportsNameToIdMap);
+  const randomSportsTypeName = sportsTypes[getRandomIndex(sportsTypes.length)];
+  return randomSportsTypeName;
 }
 
-export function getRandomSports(sportTypeId: number) {
+export function getRandomSports(sportTypeName: string) {
   const common = commonPlaceName[getRandomIndex(commonPlaceName.length)];
-  const specificNames = specificPlaceNames[sportTypeId];
+  const specificNames = specificPlaceNames[sportTypeName];
   const specific = specificNames[getRandomIndex(specificNames.length)];
 
-  const capabilityNames = sportsCapabilities[sportTypeId];
+  const capabilityNames = sportsCapabilities[sportTypeName];
   const capability = capabilityNames[getRandomIndex(capabilityNames.length)];
 
   return {
@@ -452,12 +467,12 @@ export async function getRandomTier(sportsTypeId: number, hostId: string) {
 }
 
 export async function getRandomMatches(hostId) {
-  const sportsTypeId = await getRandomSportsTypeId();
-  const tier = getRandomTier(sportsTypeId, hostId);
-
-  const matchData = getRandomSports(sportsTypeId);
-
-  return { sportsTypeId, tier, ...matchData };
+  const randomSportsTypeName = await getRandomSportsTypeName();
+  const randomSportsTypeId = sportsNameToIdMap[randomSportsTypeName];
+  const tierId = await getRandomTier(randomSportsTypeId, hostId);
+  const matchData = getRandomSports(randomSportsTypeName);
+  const randomDate = new Date(getRandomMatchDay());
+  return { randomSportsTypeId, tierId, randomDate, ...matchData };
 }
 
 export function getRandomRating() {
