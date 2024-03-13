@@ -48,7 +48,10 @@ export class MatchesService {
         (participant) => participant.id === userId,
       );
 
-      return processedMatch;
+      return {
+        participants: match.participants,
+        userId,
+      };
     });
 
     return processedMatches;
