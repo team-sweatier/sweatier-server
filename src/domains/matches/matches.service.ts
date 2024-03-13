@@ -36,11 +36,9 @@ export class MatchesService {
     const matches = await this.filterMatches(filter);
 
     const processedMatches = matches.map((match) => {
-      const participating =
-        userId &&
-        match.participants
-          .map((participant) => participant.id)
-          .includes(userId);
+      const participating = match.participants
+        .map((participant) => participant.id)
+        .includes(userId);
 
       return {
         ...match,
@@ -122,9 +120,9 @@ export class MatchesService {
       where: { userId: match.hostId },
     });
 
-    const participating =
-      userId &&
-      match.participants.map((participant) => participant.id).includes(userId);
+    const participating = match.participants
+      .map((participant) => participant.id)
+      .includes(userId);
 
     const tier = match.tier.value;
     const sport = [match.sportsType.name, match.sportsType.rules];
