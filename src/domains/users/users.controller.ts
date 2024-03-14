@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   NotFoundException,
@@ -18,6 +19,7 @@ import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '@prisma/client';
 import { CookieOptions, Response } from 'express';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
@@ -46,7 +48,6 @@ import {
   SignUpUserDto,
 } from './users.dto';
 import { UsersService } from './users.service';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Controller('users')
 export class UsersController {
@@ -148,6 +149,13 @@ export class UsersController {
     } catch (error) {
       throw new UnauthorizedException('인증에 실패했습니다.');
     }
+  }
+
+  @Private('user')
+  @Delete('sign-out')
+  async signOut(@Res({ passthrough: true }) response: Response) {
+    response.clearCookie('accessToken', this.cookieOptions);
+    return;
   }
 
   @Private('user')
