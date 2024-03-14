@@ -36,17 +36,19 @@ export class MatchesService {
     const matches = await this.filterMatches(filter);
 
     const processedMatches = matches.map((match) => {
-      const participating = match.participants
-        .map((participant) => participant.id)
-        .includes(userId);
-
-      return {
+      const processedMatch = {
         ...match,
         applicants: match.participants.length,
         tier: match.tier.value,
         sportsType: [match.sportsType.name, match.sportsType.rules],
-        participating,
+        participating: false,
       };
+
+      processedMatch.participating = match.participants.some(
+        (participant) => participant.id === userId,
+      );
+
+      return processedMatch;
     });
 
     return processedMatches;
@@ -120,10 +122,6 @@ export class MatchesService {
       where: { userId: match.hostId },
     });
 
-    const participating = match.participants
-      .map((participant) => participant.id)
-      .includes(userId);
-
     const tier = match.tier.value;
     const sport = [match.sportsType.name, match.sportsType.rules];
 
@@ -138,11 +136,15 @@ export class MatchesService {
       applicants: match.participants.length,
       tierType: tier,
       sportType: sport,
-      participating,
       hostProfileImgSrc:
         'https://storage.googleapis.com/sweatier-user-profile-image/' +
         host.userId,
+      participating: false,
     };
+
+    result.participating = match.participants.some(
+      (participant) => participant.id === userId,
+    );
 
     return result;
   }
