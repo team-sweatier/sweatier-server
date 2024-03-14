@@ -57,7 +57,7 @@ export class UsersController {
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      //   maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
       ...(this.configService.get('NODE_ENV') === 'production' && {
@@ -199,7 +199,9 @@ export class UsersController {
   @Private('user')
   @Get('profile')
   async getProfile(@DAccount('user') user: User) {
-    return await this.usersService.findProfileByUserId(user.id);
+    const profile = await this.usersService.findProfileByUserId(user.id);
+    if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
+    return profile;
   }
 
   @Private('user')
@@ -270,7 +272,7 @@ export class UsersController {
   @Private('user')
   @Get('matches')
   async getMatches(@DAccount('user') user: User) {
-    return await this.matchesService.findMatches({}, user.id);
+    return await this.matchesService.findMatches('', user.id);
   }
 
   @Private('user')
