@@ -37,22 +37,38 @@ export class UsersService {
     });
   }
 
+  getProfileImageUrl(userId: string) {
+    return `https://storage.googleapis.com/${this.configService.get('GCS_BUCKET_NAME')}/${userId}`;
+  }
+
   async findProfileByNickname(userNickName: string) {
-    return await this.prismaService.userProfile.findUnique({
+    const profile = await this.prismaService.userProfile.findUnique({
       where: { nickName: userNickName },
     });
+
+    const imageUrl = this.getProfileImageUrl(profile.userId);
+
+    return { ...profile, imageUrl };
   }
 
   async findProfileByPhoneNumber(userPhoneNumber: string) {
-    return await this.prismaService.userProfile.findUnique({
+    const profile = await this.prismaService.userProfile.findUnique({
       where: { phoneNumber: userPhoneNumber },
     });
+
+    const imageUrl = this.getProfileImageUrl(profile.userId);
+
+    return { ...profile, imageUrl };
   }
 
   async findProfileByUserId(userId: string) {
-    return await this.prismaService.userProfile.findUnique({
+    const profile = await this.prismaService.userProfile.findUnique({
       where: { userId },
     });
+
+    const imageUrl = this.getProfileImageUrl(profile.userId);
+
+    return { ...profile, imageUrl };
   }
 
   async validateUsersCredential(user: User, signInDto: SignInUserDto) {
@@ -162,12 +178,13 @@ export class UsersService {
     return { editedProfile, imageUrl };
   }
 
-  async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {    const sportsTypes = await this.prismaService.sportsType.findMany({
+  async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {
+    const sportsTypes = await this.prismaService.sportsType.findMany({
       where: {
         name: { in: editFavoriteDto.sportsType },
       },
     });
-    
+
     if (sportsTypes.length !== editFavoriteDto.sportsType.length) {
       throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
     } else {
