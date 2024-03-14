@@ -218,35 +218,37 @@ export class UsersController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const profile = await this.usersService.findProfileByUserId(user.id);
-
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
 
-    if (profile.nickNameUpdatedAt && editProfileDto.nickName) {
-      if (profile.nickName !== editProfileDto.nickName) {
-        const daysSinceLastUpdate = dayUtil
-          .day()
-          .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
-        if (daysSinceLastUpdate < 30)
-          throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
+    if (editProfileDto.nickName) {
+      const originalNickname = profile.nickName;
+      if (originalNickname !== editProfileDto.nickName) {
+        if (profile.nickNameUpdatedAt) {
+          const daysSinceLastUpdate = dayUtil
+            .day()
+            .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
+          if (daysSinceLastUpdate < 30)
+            throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
+        }
+        const duplicateNickname = await this.usersService.findProfileByNickname(
+          editProfileDto.nickName,
+        );
+        if (duplicateNickname) {
+          throw new ConflictException(DUPLICATE_NICKNAME);
+        }
       }
     }
 
     if (editProfileDto.phoneNumber) {
-      const duplicatePhoneNumber =
-        await this.usersService.findProfileByPhoneNumber(
-          editProfileDto.phoneNumber,
-        );
-      if (duplicatePhoneNumber) {
-        throw new ConflictException(DUPLICATE_PHONENUMBER);
-      }
-    }
-
-    if (editProfileDto.nickName) {
-      const duplicateNickname = await this.usersService.findProfileByNickname(
-        editProfileDto.nickName,
-      );
-      if (duplicateNickname && profile.nickName !== editProfileDto.nickName) {
-        throw new ConflictException(DUPLICATE_NICKNAME);
+      const originalPhoneNumber = profile.phoneNumber;
+      if (originalPhoneNumber !== editProfileDto.phoneNumber) {
+        const duplicatePhoneNumber =
+          await this.usersService.findProfileByPhoneNumber(
+            editProfileDto.phoneNumber,
+          );
+        if (duplicatePhoneNumber) {
+          throw new ConflictException(DUPLICATE_PHONENUMBER);
+        }
       }
     }
 

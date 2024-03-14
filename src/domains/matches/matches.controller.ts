@@ -18,13 +18,19 @@ import { Request } from 'express';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
+import { NOT_FOUND_PROFILE } from '../users/users-error.messages';
+import { UsersService } from './../users/users.service';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import {
   ALREADY_RATED,
   INVALID_APPLICATION,
   INVALID_MATCH,
+  MATCH_NOT_FINISHED,
+  RATED_PARTICIPANT_NOT_FOUND,
+  RATER_NOT_PARTICIPANT,
   PROFILE_NEEDED,
   SELF_RATING,
+  TIER_MISMATCH,
   UNAUTHORIZED,
 } from './matches-error.messages';
 import {
@@ -40,6 +46,7 @@ export class MatchesController {
   constructor(
     private readonly jwtManagerService: JwtManagerService,
     private readonly matchesService: MatchesService,
+    private readonly usersService: UsersService,
     private readonly prismaService: PrismaService,
   ) {}
 
@@ -93,11 +100,11 @@ export class MatchesController {
   @Post()
   @Private('user')
   async createMatch(@DAccount('user') user: User, @Body() dto: CreateMatchDto) {
-    const profile = await this.prismaService.userProfile.findUnique({
-      where: { userId: user.id },
-    });
 
-    if (!profile) throw new BadRequestException(PROFILE_NEEDED);
+    const userProfile = await this.usersService.findProfileByUserId(user.id);
+    if (!userProfile) {
+      throw new ForbiddenException(NOT_FOUND_PROFILE);
+    }
     return await this.matchesService.createMatch(user.id, dto);
   }
 
@@ -144,9 +151,16 @@ export class MatchesController {
       where: { id: matchId },
       include: {
         participants: true,
+        tier: { select: { id: true } },
       },
     });
-
+    const userTier = await this.prismaService.user.findUnique({
+      where: { id: user.id },
+      include: { tiers: { select: { id: true } } },
+    });
+    if (!userTier.tiers.some((tier) => tier.id === match.tier.id)) {
+      throw new ForbiddenException(TIER_MISMATCH);
+    }
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
@@ -175,11 +189,29 @@ export class MatchesController {
         participants: true,
       },
     });
+
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
+    const now = new Date();
+    if (now < match.matchDay) {
+      throw new BadRequestException(MATCH_NOT_FINISHED);
+    }
+    const isRaterParticipant = match.participants.some(
+      (participant) => participant.id === rater.id,
+    );
+    if (!isRaterParticipant) {
+      throw new ForbiddenException(RATER_NOT_PARTICIPANT);
+    }
 
     const ratePromises = dto.ratings.map(async (rating) => {
+      const isParticipantInMatch = match.participants.some(
+        (participant) => participant.id === rating.participantId,
+      );
+      if (!isParticipantInMatch) {
+        throw new NotFoundException(RATED_PARTICIPANT_NOT_FOUND);
+      }
+
       if (rating.participantId === rater.id) {
         throw new ConflictException(SELF_RATING);
       }
@@ -191,6 +223,7 @@ export class MatchesController {
           matchId: matchId,
         },
       });
+
       if (foundScore) {
         throw new ConflictException(ALREADY_RATED);
       }

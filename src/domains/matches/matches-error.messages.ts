@@ -8,6 +8,9 @@ export const INVALID_CANCEL = '취소할 수 없는 매치입니다.';
 
 export const UNAUTHORIZED = '권한이 없습니다.';
 
+export const TIER_MISMATCH =
+  '자신의 티어와 맞지 않는 경기는 신청할 수 없습니다.';
+
 export const INVALID_MATCH = '존재하지 않는 경기입니다.';
 
 export const NO_MATCHES_FOUND = '최신 매치가 없습니다.';
@@ -18,6 +21,13 @@ export const MAX_PARTICIPANTS_REACHED = '가능한 인원을 초과하였습니�
 
 export const MIN_PARTICIPANTS_REACHED =
   '신청 정원이 80%를 초과하여 취소할 수 없습니다.';
+
+export const MATCH_NOT_FINISHED = '종료되지 않은 매치는 평가할 수 없습니다.';
+
+export const RATER_NOT_PARTICIPANT = '참여하지않은 매치는 평가할 수 없습니다.';
+
+export const RATED_PARTICIPANT_NOT_FOUND =
+  '매치에 참여하지 않은 유저는 평가할 수 없습니다.';
 
 export const SELF_RATING = '자신은 평가할 수 없습니다.';
 
