@@ -287,7 +287,7 @@ export class UsersController {
   @Private('user')
   @Get('matches')
   async getMatches(@DAccount('user') user: User) {
-    return await this.matchesService.findMatches('', user.id);
+    return await this.matchesService.findParticipateMatches(user.id);
   }
 
   @Private('user')

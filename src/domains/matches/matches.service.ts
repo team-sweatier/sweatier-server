@@ -31,7 +31,7 @@ export class MatchesService {
   ) {}
 
   async findMatches(filters: FindMatchesDto | string, userId: string) {
-    let filter: Prisma.MatchWhereInput = await this.getQueryFilter(filters);
+    const filter: Prisma.MatchWhereInput = await this.getQueryFilter(filters);
 
     const matches = await this.filterMatches(filter);
 
@@ -106,6 +106,26 @@ export class MatchesService {
         sportsType: { select: { name: true, rules: true } },
       },
     });
+  }
+
+  async findParticipateMatches(userId: string) {
+    const userParticipatingMatches = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: {
+        participatingMatches: {
+          include: {
+            participants: {
+              select: { id: true },
+            },
+            sportsType: true,
+            tier: true,
+          },
+        },
+      },
+    });
+    return userParticipatingMatches
+      ? userParticipatingMatches.participatingMatches
+      : [];
   }
 
   async findMatch(matchId: string, userId: string) {

@@ -167,7 +167,7 @@ async function userSeed() {
       },
     },
   });
-  console.log(user);
+  // console.log(user);
 
   const userProfile = await prismaService.userProfile.upsert({
     where: { userId: testId },
@@ -196,7 +196,7 @@ async function userSeed() {
     originalname: `${randomImageUrl}`,
   };
   const imgUpload = await storageService.uploadImage(testId, imageFile);
-  console.log(imgUpload);
+  // console.log(imgUpload);
 
   return userProfile;
 }
@@ -290,8 +290,8 @@ async function participateSeed(userId) {
           },
         },
       });
-      console.log('참가');
-      console.log(participating);
+      // console.log('참가');
+      // console.log(participating);
     }
   }
 }
@@ -324,7 +324,7 @@ async function ratingSeed() {
               value: getRandomRating(),
             },
           });
-          console.log(rating);
+          // console.log(rating);
         }
       }
     }
