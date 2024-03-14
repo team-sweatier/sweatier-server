@@ -37,18 +37,12 @@ export class UsersService {
     });
   }
 
-  getProfileImageUrl(userId: string) {
-    return `https://storage.googleapis.com/${this.configService.get('GCS_BUCKET_NAME')}/${userId}`;
-  }
-
   async findProfileByNickname(userNickName: string) {
     const profile = await this.prismaService.userProfile.findUnique({
       where: { nickName: userNickName },
     });
 
-    const imageUrl = this.getProfileImageUrl(profile.userId);
-
-    return { ...profile, imageUrl };
+    return profile;
   }
 
   async findProfileByPhoneNumber(userPhoneNumber: string) {
@@ -56,9 +50,7 @@ export class UsersService {
       where: { phoneNumber: userPhoneNumber },
     });
 
-    const imageUrl = this.getProfileImageUrl(profile.userId);
-
-    return { ...profile, imageUrl };
+    return profile;
   }
 
   async findProfileByUserId(userId: string) {
@@ -66,9 +58,7 @@ export class UsersService {
       where: { userId },
     });
 
-    const imageUrl = this.getProfileImageUrl(profile.userId);
-
-    return { ...profile, imageUrl };
+    return profile;
   }
 
   async validateUsersCredential(user: User, signInDto: SignInUserDto) {
