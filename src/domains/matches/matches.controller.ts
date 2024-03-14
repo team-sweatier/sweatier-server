@@ -30,6 +30,7 @@ import {
   RATED_PARTICIPANT_NOT_FOUND,
   RATER_NOT_PARTICIPANT,
   SELF_RATING,
+  TIER_MISMATCH,
   UNAUTHORIZED,
 } from './matches-error.messages';
 import {
@@ -149,12 +150,20 @@ export class MatchesController {
       where: { id: matchId },
       include: {
         participants: true,
+        tier: { select: { id: true } },
       },
     });
-
+    const userTier = await this.prismaService.user.findUnique({
+      where: { id: user.id },
+      include: { tiers: { select: { id: true } } },
+    });
+    if (!userTier.tiers.some((tier) => tier.id === match.tier.id)) {
+      throw new ForbiddenException(TIER_MISMATCH);
+    }
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
+
     if (match.hostId === user.id) {
       throw new ConflictException(INVALID_APPLICATION);
     }

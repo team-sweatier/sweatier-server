@@ -8,6 +8,9 @@ export const INVALID_CANCEL = '취소할 수 없는 매치입니다.';
 
 export const UNAUTHORIZED = '권한이 없습니다.';
 
+export const TIER_MISMATCH =
+  '자신의 티어와 맞지 않는 경기는 신청할 수 없습니다.';
+
 export const INVALID_MATCH = '존재하지 않는 경기입니다.';
 
 export const NO_MATCHES_FOUND = '최신 매치가 없습니다.';
