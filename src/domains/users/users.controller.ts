@@ -22,7 +22,10 @@ import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import { dayUtil } from 'src/utils/day';
-import { NO_MATCHES_FOUND } from '../matches/matches-error.messages';
+import {
+  INVALID_MATCH,
+  NO_MATCHES_FOUND,
+} from '../matches/matches-error.messages';
 import { MatchesService } from '../matches/matches.service';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
@@ -43,6 +46,7 @@ import {
   SignUpUserDto,
 } from './users.dto';
 import { UsersService } from './users.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Controller('users')
 export class UsersController {
@@ -54,10 +58,11 @@ export class UsersController {
     private readonly kakaoAuthService: KakaoAuthService,
     private readonly configService: ConfigService,
     private readonly matchesService: MatchesService,
+    private readonly prismaService: PrismaService,
   ) {
     this.cookieOptions = {
       httpOnly: true,
-      //   maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
+      maxAge: parseInt(this.configService.get('COOKIE_MAX_AGE')),
       sameSite: 'none',
       domain: this.configService.get('CLIENT_DOMAIN'),
       ...(this.configService.get('NODE_ENV') === 'production' && {
@@ -303,6 +308,11 @@ export class UsersController {
     @DAccount('user') user: User,
     @Param('matchId') matchId: string,
   ) {
+    const match = await this.prismaService.match.findUnique({
+      where: { id: matchId },
+    });
+
+    if (!match) throw new NotFoundException(INVALID_MATCH);
     return await this.usersService.getUserMatchRates(user.id, matchId);
   }
 }
