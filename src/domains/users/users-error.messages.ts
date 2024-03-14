@@ -16,6 +16,8 @@ export const INVALID_USER_CREDENTIAL =
 
 export const FOUND_PROFILE = '이미 프로필이 존재하는 유저입니다.';
 
+export const LOGIN_REQUIRED = '로그인 상태가 아닙니다.';
+
 export const NOT_FOUND_PROFILE = '존재하지 않는 프로필입니다.';
 
 export const NOT_ALLOWED_USER = '접근 권한이 없는 유저입니다.';
