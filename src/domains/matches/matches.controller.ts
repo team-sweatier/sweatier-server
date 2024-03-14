@@ -20,6 +20,8 @@ import * as jwt from 'jsonwebtoken';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
+import { NOT_FOUND_PROFILE } from '../users/users-error.messages';
+import { UsersService } from './../users/users.service';
 import {
   ALREADY_RATED,
   INVALID_APPLICATION,
@@ -39,6 +41,7 @@ import { MatchesService } from './matches.service';
 export class MatchesController {
   constructor(
     private readonly matchesService: MatchesService,
+    private readonly usersService: UsersService,
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
   ) {}
@@ -93,6 +96,10 @@ export class MatchesController {
   @Post()
   @Private('user')
   async createMatch(@DAccount('user') user: User, @Body() dto: CreateMatchDto) {
+    const userProfile = await this.usersService.findProfileByUserId(user.id);
+    if (!userProfile) {
+      throw new ForbiddenException(NOT_FOUND_PROFILE);
+    }
     return await this.matchesService.createMatch(user.id, dto);
   }
 
