@@ -162,14 +162,12 @@ export class UsersService {
     return { editedProfile, imageUrl };
   }
 
-  async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {
-    const sportsTypes = await this.prismaService.sportsType.findMany({
+  async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {    const sportsTypes = await this.prismaService.sportsType.findMany({
       where: {
         name: { in: editFavoriteDto.sportsType },
       },
     });
-
-    console.log(sportsTypes);
+    
     if (sportsTypes.length !== editFavoriteDto.sportsType.length) {
       throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
     } else {

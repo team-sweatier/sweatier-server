@@ -32,5 +32,3 @@ export const PHONE_NUMBER_NEEDED = '연락처를 확인해주세요.';
 export const BANK_INFO_NEEDED = '계좌를 확인해주세요.';
 
 export const INVALID_NICKNAME = '닉네임은 두 글자 이상 입력해주세요.';
-
-export const PROFILE_EXISTS = '이미 프로필이 존재하는 사용자입니다.';

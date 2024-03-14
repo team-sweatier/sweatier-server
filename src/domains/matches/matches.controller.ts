@@ -23,6 +23,7 @@ import {
   ALREADY_RATED,
   INVALID_APPLICATION,
   INVALID_MATCH,
+  PROFILE_NEEDED,
   SELF_RATING,
   UNAUTHORIZED,
 } from './matches-error.messages';
@@ -92,6 +93,11 @@ export class MatchesController {
   @Post()
   @Private('user')
   async createMatch(@DAccount('user') user: User, @Body() dto: CreateMatchDto) {
+    const profile = await this.prismaService.userProfile.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (!profile) throw new BadRequestException(PROFILE_NEEDED);
     return await this.matchesService.createMatch(user.id, dto);
   }
 

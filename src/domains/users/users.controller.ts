@@ -22,7 +22,10 @@ import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import { dayUtil } from 'src/utils/day';
-import { NO_MATCHES_FOUND } from '../matches/matches-error.messages';
+import {
+  INVALID_MATCH,
+  NO_MATCHES_FOUND,
+} from '../matches/matches-error.messages';
 import { MatchesService } from '../matches/matches.service';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
@@ -43,6 +46,7 @@ import {
   SignUpUserDto,
 } from './users.dto';
 import { UsersService } from './users.service';
+import { PrismaService } from 'src/database/prisma/prisma.service';
 
 @Controller('users')
 export class UsersController {
@@ -54,6 +58,7 @@ export class UsersController {
     private readonly kakaoAuthService: KakaoAuthService,
     private readonly configService: ConfigService,
     private readonly matchesService: MatchesService,
+    private readonly prismaService: PrismaService,
   ) {
     this.cookieOptions = {
       httpOnly: true,
@@ -199,7 +204,9 @@ export class UsersController {
   @Private('user')
   @Get('profile')
   async getProfile(@DAccount('user') user: User) {
-    return await this.usersService.findProfileByUserId(user.id);
+    const profile = await this.usersService.findProfileByUserId(user.id);
+    if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
+    return profile;
   }
 
   @Private('user')
@@ -270,7 +277,7 @@ export class UsersController {
   @Private('user')
   @Get('matches')
   async getMatches(@DAccount('user') user: User) {
-    return await this.matchesService.findMatches({}, user.id);
+    return await this.matchesService.findMatches('', user.id);
   }
 
   @Private('user')
@@ -301,6 +308,11 @@ export class UsersController {
     @DAccount('user') user: User,
     @Param('matchId') matchId: string,
   ) {
+    const match = await this.prismaService.match.findUnique({
+      where: { id: matchId },
+    });
+
+    if (!match) throw new NotFoundException(INVALID_MATCH);
     return await this.usersService.getUserMatchRates(user.id, matchId);
   }
 }

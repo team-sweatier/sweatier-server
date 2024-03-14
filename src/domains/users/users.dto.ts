@@ -1,5 +1,14 @@
 import { Gender } from '@prisma/client';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MinLength,
+} from 'class-validator';
 import {
   BANK_INFO_NEEDED,
   GENDER_TYPE_NEEDED,
@@ -7,6 +16,7 @@ import {
   INVALID_NICKNAME,
   INVALID_PASSWORD_FORMAT,
   INVALID_PASSWORD_LENGTH,
+  INVALID_USER_CREDENTIAL,
   PHONE_NUMBER_NEEDED,
 } from './users-error.messages';
 
@@ -37,10 +47,10 @@ export class SignUpUserDto {
 }
 
 export class SignInUserDto {
-  @IsEmail({}, { message: INVALID_EMAIL_FORMAT })
+  @IsEmail({}, { message: INVALID_USER_CREDENTIAL })
   email: string;
 
-  @Matches(passwordRegex, { message: INVALID_PASSWORD_FORMAT })
+  @Matches(passwordRegex, { message: INVALID_USER_CREDENTIAL })
   @IsString()
   password: string;
 }
@@ -103,5 +113,7 @@ export class EditProfileDto {
 }
 
 export class EditFavoriteDto {
+  @IsNotEmpty()
+  @IsArray()
   sportsType: string[];
 }
