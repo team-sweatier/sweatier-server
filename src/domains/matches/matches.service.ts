@@ -31,7 +31,7 @@ export class MatchesService {
   ) {}
 
   async findMatches(filters: FindMatchesDto | string, userId: string) {
-    const filter: Prisma.MatchWhereInput = await this.getQueryFilter(filters);
+    let filter: Prisma.MatchWhereInput = await this.getQueryFilter(filters);
 
     const matches = await this.filterMatches(filter);
 
@@ -59,6 +59,12 @@ export class MatchesService {
       dayUtil.day().utc(),
       dayUtil.day().utc().add(2, 'weeks'),
     ];
+
+    if (typeof filters === 'string' && filters.trim() === '') {
+      return {
+        matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+      };
+    }
 
     if (filters instanceof FindMatchesDto)
       return {
