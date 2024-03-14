@@ -60,6 +60,12 @@ export class MatchesService {
       dayUtil.day().utc().add(2, 'weeks'),
     ];
 
+    if (typeof filters === 'string' && filters.trim() === '') {
+      return {
+        matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+      };
+    }
+
     if (filters instanceof FindMatchesDto)
       return {
         matchDay: {
@@ -100,6 +106,26 @@ export class MatchesService {
         sportsType: { select: { name: true, rules: true } },
       },
     });
+  }
+
+  async findParticipateMatches(userId: string) {
+    const userParticipatingMatches = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: {
+        participatingMatches: {
+          include: {
+            participants: {
+              select: { id: true },
+            },
+            sportsType: true,
+            tier: true,
+          },
+        },
+      },
+    });
+    return userParticipatingMatches
+      ? userParticipatingMatches.participatingMatches
+      : [];
   }
 
   async findMatch(matchId: string, userId: string) {
