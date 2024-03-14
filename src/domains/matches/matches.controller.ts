@@ -26,6 +26,9 @@ import {
   ALREADY_RATED,
   INVALID_APPLICATION,
   INVALID_MATCH,
+  MATCH_NOT_FINISHED,
+  RATED_PARTICIPANT_NOT_FOUND,
+  RATER_NOT_PARTICIPANT,
   SELF_RATING,
   UNAUTHORIZED,
 } from './matches-error.messages';
@@ -152,7 +155,6 @@ export class MatchesController {
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
-
     if (match.hostId === user.id) {
       throw new ConflictException(INVALID_APPLICATION);
     }
@@ -177,11 +179,29 @@ export class MatchesController {
         participants: true,
       },
     });
+
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
+    const now = new Date();
+    if (now < match.matchDay) {
+      throw new BadRequestException(MATCH_NOT_FINISHED);
+    }
+    const isRaterParticipant = match.participants.some(
+      (participant) => participant.id === rater.id,
+    );
+    if (!isRaterParticipant) {
+      throw new ForbiddenException(RATER_NOT_PARTICIPANT);
+    }
 
     const ratePromises = dto.ratings.map(async (rating) => {
+      const isParticipantInMatch = match.participants.some(
+        (participant) => participant.id === rating.participantId,
+      );
+      if (!isParticipantInMatch) {
+        throw new NotFoundException(RATED_PARTICIPANT_NOT_FOUND);
+      }
+
       if (rating.participantId === rater.id) {
         throw new ConflictException(SELF_RATING);
       }
@@ -193,6 +213,7 @@ export class MatchesController {
           matchId: matchId,
         },
       });
+
       if (foundScore) {
         throw new ConflictException(ALREADY_RATED);
       }
