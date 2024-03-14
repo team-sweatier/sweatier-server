@@ -37,18 +37,12 @@ export class UsersService {
     });
   }
 
-  getProfileImageUrl(userId: string) {
-    return `https://storage.googleapis.com/${this.configService.get('GCS_BUCKET_NAME')}/${userId}`;
-  }
-
   async findProfileByNickname(userNickName: string) {
     const profile = await this.prismaService.userProfile.findUnique({
       where: { nickName: userNickName },
     });
 
-    const imageUrl = this.getProfileImageUrl(profile.userId);
-
-    return { ...profile, imageUrl };
+    return profile;
   }
 
   async findProfileByPhoneNumber(userPhoneNumber: string) {
@@ -56,9 +50,7 @@ export class UsersService {
       where: { phoneNumber: userPhoneNumber },
     });
 
-    const imageUrl = this.getProfileImageUrl(profile.userId);
-
-    return { ...profile, imageUrl };
+    return profile;
   }
 
   async findProfileByUserId(userId: string) {
@@ -66,9 +58,7 @@ export class UsersService {
       where: { userId },
     });
 
-    const imageUrl = this.getProfileImageUrl(profile.userId);
-
-    return { ...profile, imageUrl };
+    return profile;
   }
 
   async validateUsersCredential(user: User, signInDto: SignInUserDto) {
@@ -130,15 +120,21 @@ export class UsersService {
   ) {
     let imageUrl: string | undefined;
     if (file) {
-      imageUrl = await this.storageService.uploadImage(userId, file);
+      imageUrl = await this.storageService.uploadImage(
+        nanoid(this.configService.get('NANOID_SIZE')),
+        file,
+      );
     }
+
     const profile = await this.prismaService.userProfile.create({
       data: {
         userId,
         ...createProfileDto,
+        ...(imageUrl && { imageUrl }),
       },
     });
-    return { profile, imageUrl };
+
+    return profile;
   }
 
   async editProfile(
@@ -161,7 +157,10 @@ export class UsersService {
 
     let imageUrl: string | undefined;
     if (file) {
-      imageUrl = await this.storageService.uploadImage(userId, file);
+      imageUrl = await this.storageService.uploadImage(
+        nanoid(this.configService.get('NANOID_SIZE')),
+        file,
+      );
     }
 
     const data = {
@@ -169,13 +168,14 @@ export class UsersService {
       ...(isNicknameUpdated && {
         nickNameUpdatedAt: dayUtil.day().add(30, 'day').toDate(),
       }),
+      ...(imageUrl && { imageUrl }),
     };
 
     const editedProfile = await this.prismaService.userProfile.update({
       where: { userId },
       data,
     });
-    return { editedProfile, imageUrl };
+    return editedProfile;
   }
 
   async editUserFavorite(userId: string, editFavoriteDto: EditFavoriteDto) {

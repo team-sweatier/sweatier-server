@@ -38,4 +38,9 @@ export class GCSService extends StorageService {
 
     return `https://storage.googleapis.com/${this.configService.get('GCS_BUCKET_NAME')}/${fileName}`;
   }
+
+  async deleteImage(fileName: string) {
+    const bucketFile = this.bucket.file(fileName);
+    console.log(await bucketFile.delete());
+  }
 }

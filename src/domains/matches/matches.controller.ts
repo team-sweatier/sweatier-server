@@ -18,9 +18,9 @@ import { Request } from 'express';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
+import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import { NOT_FOUND_PROFILE } from '../users/users-error.messages';
 import { UsersService } from './../users/users.service';
-import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
 import {
   ALREADY_RATED,
   INVALID_APPLICATION,
@@ -28,7 +28,6 @@ import {
   MATCH_NOT_FINISHED,
   RATED_PARTICIPANT_NOT_FOUND,
   RATER_NOT_PARTICIPANT,
-  PROFILE_NEEDED,
   SELF_RATING,
   TIER_MISMATCH,
   UNAUTHORIZED,
@@ -100,7 +99,6 @@ export class MatchesController {
   @Post()
   @Private('user')
   async createMatch(@DAccount('user') user: User, @Body() dto: CreateMatchDto) {
-
     const userProfile = await this.usersService.findProfileByUserId(user.id);
     if (!userProfile) {
       throw new ForbiddenException(NOT_FOUND_PROFILE);
