@@ -166,8 +166,8 @@ export class MatchesController {
     if (match.hostId === user.id) {
       throw new ConflictException(INVALID_APPLICATION);
     }
-
-    const now = new Date();
+    const now = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+    // const now = new Date();
     if (now >= match.matchDay) {
       throw new BadRequestException(INVALID_APPLICATION);
     }
@@ -191,7 +191,8 @@ export class MatchesController {
     if (!match) {
       throw new NotFoundException(INVALID_MATCH);
     }
-    const now = new Date();
+    const now = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+    // const now = new Date();
     if (now < match.matchDay) {
       throw new BadRequestException(MATCH_NOT_FINISHED);
     }
