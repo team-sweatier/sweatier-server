@@ -324,7 +324,7 @@ async function ratingSeed() {
               value: getRandomRating(),
             },
           });
-          // console.log(rating);
+          console.log(rating);
         }
       }
     }
@@ -334,14 +334,14 @@ async function ratingSeed() {
 async function seed() {
   const userArray: UserProfile[] = [];
   await sportTypeSeed().then(tierSeed);
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 80; i++) {
     const userProfile = await userSeed();
     userArray.push(userProfile);
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < 5; j++) {
       await matchSeed(userProfile.userId);
     }
   }
-  for (let k = 0; k < userArray.length; k++) {
+  for (let k = 0; k < userArray.length / 2; k++) {
     await participateSeed(userArray[k].userId);
   }
   ratingSeed();

@@ -290,11 +290,11 @@ const specificPlaceNames = {
 };
 
 const sportsCapabilities = {
-  badminton: [2, 4],
-  baseball: [16, 18, 20],
-  tennis: [2, 4],
+  badminton: [4, 6],
+  baseball: [14, 16, 18],
+  tennis: [4, 6],
   basketball: [6, 8, 10],
-  soccer: [10, 12, 14, 16, 18, 20, 22],
+  soccer: [10, 12, 14, 16, 18],
 };
 
 const oneLiners = [
