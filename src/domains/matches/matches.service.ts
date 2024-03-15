@@ -294,7 +294,10 @@ export class MatchesService {
       throw new ConflictException(MAX_PARTICIPANTS_REACHED);
     }
 
-    if (match.gender !== 'both' && match.gender !== user.gender) {
+    if (
+      ['male', 'female'].includes(match.gender) &&
+      match.gender !== user.gender
+    ) {
       throw new UnauthorizedException(INVALID_GENDER);
     }
 
