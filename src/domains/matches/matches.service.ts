@@ -91,10 +91,12 @@ export class MatchesService {
       .map((keyword) => `${keyword}:*`)
       .join(' & ');
 
-    return {
-      matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
-      OR: [{ title: { search } }, { content: { search } }],
-    };
+    return !!search
+      ? {
+          matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+          OR: [{ title: { search } }, { content: { search } }],
+        }
+      : unde;
   }
 
   async filterMatches(filter: Prisma.MatchWhereInput) {
@@ -294,10 +296,7 @@ export class MatchesService {
       throw new ConflictException(MAX_PARTICIPANTS_REACHED);
     }
 
-    if (
-      ['male', 'female'].includes(match.gender) &&
-      match.gender !== user.gender
-    ) {
+    if (match.gender !== 'both' && match.gender !== user.gender) {
       throw new UnauthorizedException(INVALID_GENDER);
     }
 
