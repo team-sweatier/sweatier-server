@@ -91,12 +91,10 @@ export class MatchesService {
       .map((keyword) => `${keyword}:*`)
       .join(' & ');
 
-    return !!search
-      ? {
-          matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
-          OR: [{ title: { search } }, { content: { search } }],
-        }
-      : unde;
+    return {
+      matchDay: { gte: todayUTC.toDate(), lte: endDateUTC.toDate() },
+      OR: [{ title: { search } }, { content: { search } }],
+    };
   }
 
   async filterMatches(filter: Prisma.MatchWhereInput) {
