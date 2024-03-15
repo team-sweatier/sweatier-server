@@ -169,7 +169,9 @@ export class MatchesController {
 
     const now = new Date();
     if (now >= match.matchDay) {
-      throw new BadRequestException(INVALID_APPLICATION);
+      throw new BadRequestException(
+        '현재 시간 이후의 경기만 신청할 수 있습니다.',
+      );
     }
     return await this.matchesService.participate(matchId, user.id);
   }
