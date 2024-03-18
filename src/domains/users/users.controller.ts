@@ -214,6 +214,8 @@ export class UsersController {
   @Get('profile')
   async getProfile(@DAccount('user') user: User) {
     const profile = await this.usersService.findProfileByUserId(user.id);
+    console.log(profile);
+
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
     return profile;
   }
@@ -227,7 +229,6 @@ export class UsersController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const profile = await this.usersService.findProfileByUserId(user.id);
-    console.log(profile);
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
 
     if (editProfileDto.nickName) {
