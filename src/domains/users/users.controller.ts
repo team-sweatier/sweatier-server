@@ -105,6 +105,7 @@ export class UsersController {
     if (!foundUser) {
       throw new NotFoundException(INVALID_USER_CREDENTIAL);
     }
+
     const validate = await this.usersService.validateUsersCredential(
       foundUser,
       signInDto,
@@ -226,6 +227,7 @@ export class UsersController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const profile = await this.usersService.findProfileByUserId(user.id);
+    console.log(profile);
     if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
 
     if (editProfileDto.nickName) {
