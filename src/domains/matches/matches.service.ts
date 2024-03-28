@@ -105,6 +105,7 @@ export class MatchesService {
         tier: { select: { value: true } },
         sportsType: { select: { name: true, rules: true } },
       },
+      orderBy: { matchDay: 'asc' },
     });
   }
 
