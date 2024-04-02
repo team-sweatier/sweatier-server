@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/exception-filters/http-exception.filter';
+import { GlobalExceptionFilter } from './common/exceptions/global-exception.filter';
 import { SuccessResponseInterceptor } from './common/interceptors/success-response.interceptor';
 
 async function bootstrap() {
@@ -22,7 +22,7 @@ async function bootstrap() {
   });
 
   app.useGlobalInterceptors(new SuccessResponseInterceptor());
-  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   await app.listen(3000);
