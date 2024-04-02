@@ -1,21 +1,25 @@
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { Match, Prisma } from '@prisma/client';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { dayUtil } from 'src/utils/day';
-import {
-  INVALID_APPLICATION,
-  INVALID_GENDER,
-  MAX_PARTICIPANTS_REACHED,
-  MIN_PARTICIPANTS_REACHED,
-  PROFILE_NEEDED,
-} from './matches-error.messages';
 
+import UserProfileNotFoundException from '../users/exceptions/user-profile-not-found.exception';
+import MatchAlreadyRatedException from './exceptions/match-already-rated.exception';
+import MatchCancelLockedException from './exceptions/match-cancel-locked.exception';
+import MatchEditForbiddenException from './exceptions/match-edit-forbidden.exception';
+import MatchGenderMismatchException from './exceptions/match-gender-mismatch.exception';
+import MatchNotFinishedException from './exceptions/match-not-finished.exception';
+import MatchNotFoundException from './exceptions/match-not-found.exception';
+import MatchParticipationExpiredException from './exceptions/match-participation-expired.exception';
+import MatchParticipationReachedLimitException from './exceptions/match-participation-reached-limit.exception';
+import MatchSelfParticipationException from './exceptions/match-self-participation.exception';
+import MatchSelfRatingException from './exceptions/match-self-rating.exception';
+import MatchSportTypeNotFoundException from './exceptions/match-sport-type-not-found.exception';
+import MatchTierMismatchException from './exceptions/match-tier-mismatch.exception';
+import RaterNotInMatchException from './exceptions/rater-not-in-match.exception';
+import UserNotInParticipantsException from './exceptions/user-not-in-participants.exception';
 import {
   CreateMatchDto,
   FindMatchesDto,
@@ -145,6 +149,8 @@ export class MatchesService {
       },
     });
 
+    if (!match) throw new MatchNotFoundException();
+
     const host = await this.prismaService.userProfile.findUnique({
       where: { userId: match.hostId },
     });
@@ -177,6 +183,12 @@ export class MatchesService {
   }
 
   async createMatch(userId: string, data: CreateMatchDto) {
+    const userProfile = await this.prismaService.userProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!userProfile) throw new UserProfileNotFoundException();
+
     const { sportsTypeName, ...matchData } = data;
     const id = nanoid(this.configService.get('NANOID_SIZE'));
     const foundUser = await this.prismaService.user.findUnique({
@@ -211,20 +223,28 @@ export class MatchesService {
     return match;
   }
 
-  async editMatch(matchId: string, updateMatchDto: UpdateMatchDto) {
+  async editMatch(
+    userId: string,
+    matchId: string,
+    updateMatchDto: UpdateMatchDto,
+  ) {
+    const match = await this.findMatch(matchId, userId);
+
+    if (match.hostId !== userId) throw new MatchEditForbiddenException();
+
     const data: any = { ...updateMatchDto };
+
     if (updateMatchDto.sportsTypeName) {
       const sportsType = await this.prismaService.sportsType.findUnique({
         where: { name: updateMatchDto.sportsTypeName },
       });
 
-      if (!sportsType) {
-        throw new Error('SportsType not found');
-      }
+      if (!sportsType) throw new MatchSportTypeNotFoundException();
 
       data.sportsType = {
         connect: { id: sportsType.id },
       };
+
       delete data.sportsTypeName;
     }
 
@@ -236,7 +256,11 @@ export class MatchesService {
     return updatedMatch;
   }
 
-  async deleteMatch(matchId: string) {
+  async deleteMatch(userId: string, matchId: string) {
+    const match = await this.findMatch(matchId, userId);
+
+    if (match.hostId !== userId) throw new MatchEditForbiddenException();
+
     return await this.prismaService.match.delete({
       where: {
         id: matchId,
@@ -245,6 +269,8 @@ export class MatchesService {
   }
 
   async participate(matchId: string, userId: string) {
+    await this.validateParticipation(matchId, userId);
+
     const match = await this.prismaService.match.findUnique({
       where: { id: matchId },
       include: {
@@ -257,47 +283,37 @@ export class MatchesService {
     );
 
     if (isParticipating) {
-      if (match.participants.length / match.capability >= 0.8) {
-        throw new ConflictException(MIN_PARTICIPANTS_REACHED);
-      }
-      return await this.prismaService.match.update({
+      const participationRate = match.participants.length / match.capability;
+      const matchCancelLock = participationRate >= 0.8;
+      if (matchCancelLock) throw new MatchCancelLockedException();
+
+      const disconnectParticipant = {
         where: { id: matchId },
         include: {
-          participants: {
-            select: {
-              id: true,
-            },
-          },
+          participants: { select: { id: true } },
         },
         data: {
-          participants: {
-            disconnect: {
-              id: userId,
-            },
-          },
+          participants: { disconnect: { id: userId } },
         },
-      });
+      };
+
+      return await this.prismaService.match.update(disconnectParticipant);
     }
 
-    const user = await this.prismaService.userProfile.findUnique({
+    const userProfile = await this.prismaService.userProfile.findUnique({
       where: { userId: userId },
     });
 
-    if (!user) {
-      throw new UnauthorizedException(PROFILE_NEEDED);
-    }
+    if (!userProfile) throw new UserProfileNotFoundException();
 
-    if (match.hostId === user.userId) {
-      throw new UnauthorizedException(INVALID_APPLICATION);
-    }
+    if (match.hostId === userProfile.userId)
+      throw new MatchSelfParticipationException();
 
-    if (match.participants.length >= match.capability) {
-      throw new ConflictException(MAX_PARTICIPANTS_REACHED);
-    }
+    if (match.participants.length >= match.capability)
+      throw new MatchParticipationReachedLimitException();
 
-    if (match.gender !== 'both' && match.gender !== user.gender) {
-      throw new UnauthorizedException(INVALID_GENDER);
-    }
+    if (match.gender !== 'both' && match.gender !== userProfile.gender)
+      throw new MatchGenderMismatchException();
 
     const newParticipant = await this.prismaService.user.findUnique({
       where: { id: userId },
@@ -322,6 +338,61 @@ export class MatchesService {
     });
   }
 
+  async validateParticipation(matchId: string, userId: string) {
+    const match = await this.findMatch(matchId, userId);
+
+    const userTier = await this.prismaService.user.findUnique({
+      where: { id: userId },
+      include: { tiers: { select: { id: true } } },
+    });
+
+    if (!userTier.tiers.some((tier) => tier.id === match.tierId))
+      throw new MatchTierMismatchException();
+
+    if (match.hostId === userId) throw new MatchSelfParticipationException();
+
+    const now = new Date();
+    if (now >= match.matchDay) throw new MatchParticipationExpiredException();
+  }
+
+  async ratePlayers(
+    matchId: string,
+    raterId: string,
+    ratings: ParticipantRating[],
+  ) {
+    const match = await this.findMatch(matchId, raterId);
+
+    this.validateMatchRating(match.participants, match, raterId);
+
+    const ratePromises = ratings.map(async (rating) => {
+      const isParticipantInMatch = match.participants.some(
+        (participant) => participant.id === rating.participantId,
+      );
+
+      if (!isParticipantInMatch) throw new UserNotInParticipantsException();
+
+      if (rating.participantId === raterId)
+        throw new MatchSelfRatingException();
+
+      const foundScore = await this.prismaService.rating.findFirst({
+        where: {
+          userId: rating.participantId,
+          raterId: raterId,
+          matchId: matchId,
+        },
+      });
+
+      if (foundScore) throw new MatchAlreadyRatedException();
+
+      return await this.ratePlayer(matchId, raterId, {
+        participantId: rating.participantId,
+        value: rating.value,
+      });
+    });
+
+    return await Promise.all(ratePromises);
+  }
+
   async ratePlayer(matchId: string, raterId: string, data: ParticipantRating) {
     const id = nanoid(this.configService.get('NANOID_SIZE'));
     return await this.prismaService.rating.create({
@@ -333,5 +404,25 @@ export class MatchesService {
         value: data.value,
       },
     });
+  }
+
+  validateMatchRating(
+    matchParticipants: {
+      id: string;
+      userProfile: {
+        nickName: string;
+      };
+    }[],
+    match: Match,
+    raterId: string,
+  ) {
+    const now = new Date();
+    if (now < match.matchDay) throw new MatchNotFinishedException();
+
+    const isRaterParticipant = matchParticipants.some(
+      (participant) => participant.id === raterId,
+    );
+
+    if (!isRaterParticipant) throw new RaterNotInMatchException();
   }
 }

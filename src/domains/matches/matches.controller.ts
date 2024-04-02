@@ -1,12 +1,8 @@
 import {
-  BadRequestException,
   Body,
-  ConflictException,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -15,23 +11,9 @@ import {
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { Request } from 'express';
-import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
-import { NOT_FOUND_PROFILE } from '../users/users-error.messages';
-import { UsersService } from './../users/users.service';
-import {
-  ALREADY_RATED,
-  INVALID_APPLICATION,
-  INVALID_MATCH,
-  MATCH_NOT_FINISHED,
-  RATED_PARTICIPANT_NOT_FOUND,
-  RATER_NOT_PARTICIPANT,
-  SELF_RATING,
-  TIER_MISMATCH,
-  UNAUTHORIZED,
-} from './matches-error.messages';
 import {
   CreateMatchDto,
   FindMatchesDto,
@@ -45,8 +27,6 @@ export class MatchesController {
   constructor(
     private readonly jwtManagerService: JwtManagerService,
     private readonly matchesService: MatchesService,
-    private readonly usersService: UsersService,
-    private readonly prismaService: PrismaService,
   ) {}
 
   @Get()
@@ -80,12 +60,6 @@ export class MatchesController {
 
   @Get(':matchId')
   async findMatch(@Param('matchId') matchId: string, @Req() request: Request) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-    });
-
-    if (!match) throw new NotFoundException(INVALID_MATCH);
-
     const accessToken = request.cookies['accessToken'];
 
     if (!accessToken) return await this.matchesService.findMatch(matchId, null);
@@ -99,10 +73,6 @@ export class MatchesController {
   @Post()
   @Private('user')
   async createMatch(@DAccount('user') user: User, @Body() dto: CreateMatchDto) {
-    const userProfile = await this.usersService.findProfileByUserId(user.id);
-    if (!userProfile) {
-      throw new ForbiddenException(NOT_FOUND_PROFILE);
-    }
     return await this.matchesService.createMatch(user.id, dto);
   }
 
@@ -113,13 +83,7 @@ export class MatchesController {
     @Param('matchId') matchId: string,
     @Body() dto: UpdateMatchDto,
   ) {
-    const match = await this.matchesService.findMatch(matchId, user.id);
-
-    if (!match) throw new NotFoundException(INVALID_MATCH);
-
-    if (match.hostId !== user.id) throw new ForbiddenException(UNAUTHORIZED);
-
-    return await this.matchesService.editMatch(matchId, dto);
+    return await this.matchesService.editMatch(user.id, matchId, dto);
   }
 
   @Delete(':matchId')
@@ -128,15 +92,7 @@ export class MatchesController {
     @DAccount('user') user: User,
     @Param('matchId') matchId: string,
   ) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-    });
-
-    if (!match) throw new NotFoundException(INVALID_MATCH);
-
-    if (match.hostId !== user.id) throw new ForbiddenException(UNAUTHORIZED);
-
-    return await this.matchesService.deleteMatch(matchId);
+    return await this.matchesService.deleteMatch(user.id, matchId);
   }
 
   @Put(':matchId/participate')
@@ -145,34 +101,6 @@ export class MatchesController {
     @DAccount('user') user: User,
     @Param('matchId') matchId: string,
   ) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-      include: {
-        participants: true,
-        tier: { select: { id: true } },
-      },
-    });
-    const userTier = await this.prismaService.user.findUnique({
-      where: { id: user.id },
-      include: { tiers: { select: { id: true } } },
-    });
-    if (!userTier.tiers.some((tier) => tier.id === match.tier.id)) {
-      throw new ForbiddenException(TIER_MISMATCH);
-    }
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
-
-    if (match.hostId === user.id) {
-      throw new ConflictException(INVALID_APPLICATION);
-    }
-
-    const now = new Date();
-    if (now >= match.matchDay) {
-      throw new BadRequestException(
-        '현재 시간 이후의 경기만 신청할 수 있습니다.',
-      );
-    }
     return await this.matchesService.participate(matchId, user.id);
   }
 
@@ -183,56 +111,10 @@ export class MatchesController {
     @Param('matchId') matchId: string,
     @Body() dto: RateDto,
   ) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-      include: {
-        participants: true,
-      },
-    });
-
-    if (!match) {
-      throw new NotFoundException(INVALID_MATCH);
-    }
-    const now = new Date();
-    if (now < match.matchDay) {
-      throw new BadRequestException(MATCH_NOT_FINISHED);
-    }
-    const isRaterParticipant = match.participants.some(
-      (participant) => participant.id === rater.id,
+    return await this.matchesService.ratePlayers(
+      matchId,
+      rater.id,
+      dto.ratings,
     );
-    if (!isRaterParticipant) {
-      throw new ForbiddenException(RATER_NOT_PARTICIPANT);
-    }
-
-    const ratePromises = dto.ratings.map(async (rating) => {
-      const isParticipantInMatch = match.participants.some(
-        (participant) => participant.id === rating.participantId,
-      );
-      if (!isParticipantInMatch) {
-        throw new NotFoundException(RATED_PARTICIPANT_NOT_FOUND);
-      }
-
-      if (rating.participantId === rater.id) {
-        throw new ConflictException(SELF_RATING);
-      }
-
-      const foundScore = await this.prismaService.rating.findFirst({
-        where: {
-          userId: rating.participantId,
-          raterId: rater.id,
-          matchId: matchId,
-        },
-      });
-
-      if (foundScore) {
-        throw new ConflictException(ALREADY_RATED);
-      }
-      return await this.matchesService.ratePlayer(matchId, rater.id, {
-        participantId: rating.participantId,
-        value: rating.value,
-      });
-    });
-    const completedRating = await Promise.all(ratePromises);
-    return completedRating;
   }
 }
