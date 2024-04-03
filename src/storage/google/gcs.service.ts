@@ -28,6 +28,8 @@ export class GCSService extends StorageService {
     fileName: string,
     file: Pick<Express.Multer.File, 'originalname' | 'buffer'>,
   ) {
+    if (!file) return undefined;
+
     const bucketFile = this.bucket.file(fileName);
 
     const ext = this.getExt(file);

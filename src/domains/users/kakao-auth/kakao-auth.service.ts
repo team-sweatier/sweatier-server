@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import * as jwt from 'jsonwebtoken';
+import UserUnauthorizedException from '../exceptions/user-unauthorized.exception';
 
 @Injectable()
 export class KakaoAuthService {
@@ -20,21 +21,25 @@ export class KakaoAuthService {
   }
 
   async getKakaoUsersId(code: string): Promise<string> {
-    const response = await axios.post(
-      'https://kauth.kakao.com/oauth/token',
-      {
-        grant_type: 'authorization_code',
-        client_id: this.kakaoConfig.clientId,
-        client_secret: this.kakaoConfig.clientSecret,
-        redirect_uri: this.kakaoConfig.redirectUri,
-        code,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+    const response = await axios
+      .post(
+        'https://kauth.kakao.com/oauth/token',
+        {
+          grant_type: 'authorization_code',
+          client_id: this.kakaoConfig.clientId,
+          client_secret: this.kakaoConfig.clientSecret,
+          redirect_uri: this.kakaoConfig.redirectUri,
+          code,
         },
-      },
-    );
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      )
+      .catch(() => {
+        throw new UserUnauthorizedException();
+      });
 
     const token = jwt.decode(response.data.id_token);
 

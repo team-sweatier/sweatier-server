@@ -1,13 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Match, User } from '@prisma/client';
+import { Match, Prisma } from '@prisma/client';
 import { compare, hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 
 import { StorageService } from 'src/storage/storage.service';
 import { dayUtil } from 'src/utils/day';
-import { NOT_FOUND_SPORT_TYPE } from './users-error.messages';
+import UserDuplicateNicknameException from './exceptions/user-duplicate-nickname.exception';
+import UserDuplicatePhoneNumberException from './exceptions/user-duplicate-phone-number.exception';
+import UserDuplicateProfileException from './exceptions/user-duplicate-profile.exception';
+import UserDuplicateException from './exceptions/user-duplicate.exception';
+import UserInvalidNicknameChangeException from './exceptions/user-invalid-nickname-change.exception';
+import UserProfileNotFoundException from './exceptions/user-profile-not-found.exception';
+import UserSportTypeNotFoundException from './exceptions/user-sport-type-not-found.exception';
+import UserUnauthorizedException from './exceptions/user-unauthorized.exception';
 import {
   CreateProfileDto,
   EditFavoriteDto,
@@ -31,43 +38,88 @@ export class UsersService {
     });
   }
 
-  async findUserByEmail(userEmail: string) {
-    return await this.prismaService.user.findUnique({
-      where: { email: userEmail },
-    });
-  }
-
-  async findProfileByNickname(userNickName: string) {
-    const profile = await this.prismaService.userProfile.findUnique({
-      where: { nickName: userNickName },
-    });
-
-    return profile;
-  }
-
-  async findProfileByPhoneNumber(userPhoneNumber: string) {
-    const profile = await this.prismaService.userProfile.findUnique({
-      where: { phoneNumber: userPhoneNumber },
-    });
-
-    return profile;
-  }
-
   async findProfileByUserId(userId: string) {
     const profile = await this.prismaService.userProfile.findUnique({
       where: { userId },
     });
 
+    if (!profile) throw new UserProfileNotFoundException();
+
     return profile;
   }
 
-  async validateUsersCredential(user: User, signInDto: SignInUserDto) {
+  async validateProfile(userId: string, profileDto: CreateProfileDto) {
+    const profile = await this.prismaService.userProfile.findUnique({
+      where: { userId },
+    });
+
+    if (profile) throw new UserDuplicateProfileException();
+
+    await this.validatePhoneNumber(profileDto.phoneNumber);
+
+    await this.validateNickname(profileDto.nickName);
+  }
+
+  async validatePhoneNumber(userPhoneNumber: string) {
+    const profile = await this.prismaService.userProfile.findUnique({
+      where: { phoneNumber: userPhoneNumber },
+    });
+
+    if (profile) throw new UserDuplicatePhoneNumberException();
+  }
+
+  async validateNickname(userNickName: string) {
+    const profile = await this.prismaService.userProfile.findUnique({
+      where: { nickName: userNickName },
+    });
+
+    if (profile) throw new UserDuplicateNicknameException();
+  }
+
+  async validateNicknameChange(
+    existingProfile: Prisma.UserProfileCreateWithoutUserInput,
+    newNickname: string,
+  ) {
+    const originalNickname = existingProfile.nickName;
+    const nickNameUpdatedAt = existingProfile.nickNameUpdatedAt;
+
+    if (originalNickname === newNickname || !nickNameUpdatedAt) return;
+
+    const daysSinceLastUpdate = dayUtil
+      .day()
+      .diff(dayUtil.day(nickNameUpdatedAt), 'day');
+
+    if (daysSinceLastUpdate < 30)
+      throw new UserInvalidNicknameChangeException();
+
+    await this.validateNickname(newNickname);
+  }
+
+  async validateEmail(userEmail: string) {
+    const duplicateUser = await this.prismaService.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (duplicateUser) throw new UserDuplicateException();
+  }
+
+  async findUsersCredential(signInDto: SignInUserDto) {
+    const foundUser = await this.prismaService.user
+      .findUniqueOrThrow({
+        where: { email: signInDto.email },
+      })
+      .catch(() => {
+        throw new UserUnauthorizedException();
+      });
+
     const passwordMatch = await compare(
       signInDto.password,
-      user.encryptedPassword,
+      foundUser.encryptedPassword,
     );
 
-    return passwordMatch;
+    if (!passwordMatch) throw new UserUnauthorizedException();
+
+    return foundUser;
   }
 
   async getUserTier(userId: string) {
@@ -118,13 +170,12 @@ export class UsersService {
     createProfileDto: CreateProfileDto,
     file?: Express.Multer.File,
   ) {
-    let imageUrl: string | undefined;
-    if (file) {
-      imageUrl = await this.storageService.uploadImage(
-        nanoid(this.configService.get('NANOID_SIZE')),
-        file,
-      );
-    }
+    await this.validateProfile(userId, createProfileDto);
+
+    const imageUrl = await this.storageService.uploadImage(
+      nanoid(this.configService.get('NANOID_SIZE')),
+      file,
+    );
 
     const profile = await this.prismaService.userProfile.create({
       data: {
@@ -142,26 +193,29 @@ export class UsersService {
     editProfileDto: EditProfileDto,
     file?: Express.Multer.File,
   ) {
+    const { nickName: newNickname, phoneNumber: newPhoneNumber } =
+      editProfileDto;
+
     const existingProfile = await this.findProfileByUserId(userId);
 
-    if (
-      editProfileDto.nickName !== existingProfile.nickName &&
-      editProfileDto.nickName !== undefined
-    ) {
+    await this.validateNicknameChange(existingProfile, newNickname);
+
+    const originalPhoneNumber = existingProfile.phoneNumber;
+    if (newPhoneNumber && originalPhoneNumber !== newPhoneNumber) {
+      await this.validatePhoneNumber(newPhoneNumber);
+    }
+
+    const originalNickname = existingProfile.nickName;
+    if (newNickname && newNickname !== originalNickname) {
       existingProfile.nickNameUpdatedAt = dayUtil.day().add(30, 'day').toDate();
     }
 
-    const isNicknameUpdated =
-      editProfileDto.nickName !== undefined &&
-      editProfileDto.nickName !== existingProfile.nickName;
+    const isNicknameUpdated = newNickname && newNickname !== originalNickname;
 
-    let imageUrl: string | undefined;
-    if (file) {
-      imageUrl = await this.storageService.uploadImage(
-        nanoid(this.configService.get('NANOID_SIZE')),
-        file,
-      );
-    }
+    const imageUrl = await this.storageService.uploadImage(
+      nanoid(this.configService.get('NANOID_SIZE')),
+      file,
+    );
 
     const data = {
       ...editProfileDto,
@@ -175,6 +229,7 @@ export class UsersService {
       where: { userId },
       data,
     });
+
     return editedProfile;
   }
 
@@ -186,7 +241,7 @@ export class UsersService {
     });
 
     if (sportsTypes.length !== editFavoriteDto.sportsType.length) {
-      throw new NotFoundException(NOT_FOUND_SPORT_TYPE);
+      throw new UserSportTypeNotFoundException();
     } else {
       await this.prismaService.user.update({
         where: { id: userId },

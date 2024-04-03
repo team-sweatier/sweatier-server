@@ -1,9 +1,7 @@
 import {
   Body,
-  ConflictException,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -11,7 +9,6 @@ import {
   Put,
   Query,
   Res,
-  UnauthorizedException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -23,22 +20,12 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
-import { dayUtil } from 'src/utils/day';
 import {
   INVALID_MATCH,
   NO_MATCHES_FOUND,
 } from '../matches/matches-error.messages';
 import { MatchesService } from '../matches/matches.service';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
-import {
-  DUPLICATE_NICKNAME,
-  DUPLICATE_PHONENUMBER,
-  DUPLICATE_USER,
-  FOUND_PROFILE,
-  INVALID_CHANGE_NICKNAME,
-  INVALID_USER_CREDENTIAL,
-  NOT_FOUND_PROFILE,
-} from './users-error.messages';
 import {
   CreateProfileDto,
   EditFavoriteDto,
@@ -77,11 +64,7 @@ export class UsersController {
     @Body() signUpDto: SignUpUserDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const duplicateEmail = await this.usersService.findUserByEmail(
-      signUpDto.email,
-    );
-
-    if (duplicateEmail) throw new ConflictException(DUPLICATE_USER);
+    await this.usersService.validateEmail(signUpDto.email);
 
     const user = await this.usersService.createUser(signUpDto);
 
@@ -100,17 +83,7 @@ export class UsersController {
     @Body() signInDto: SignInUserDto,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const foundUser = await this.usersService.findUserByEmail(signInDto.email);
-
-    if (!foundUser) {
-      throw new NotFoundException(INVALID_USER_CREDENTIAL);
-    }
-    const validate = await this.usersService.validateUsersCredential(
-      foundUser,
-      signInDto,
-    );
-
-    if (!validate) throw new UnauthorizedException(INVALID_USER_CREDENTIAL);
+    const foundUser = await this.usersService.findUsersCredential(signInDto);
 
     const accessToken = this.jwtManagerService.sign('user', {
       id: foundUser.id,
@@ -132,23 +105,19 @@ export class UsersController {
     @Query('code') code: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    try {
-      const id = await this.kakaoAuthService.getKakaoUsersId(code);
+    const id = await this.kakaoAuthService.getKakaoUsersId(code);
 
-      const user = await this.usersService.createUser(
-        new SignUpKakaoUserDto(id as string),
-      );
+    const user = await this.usersService.createUser(
+      new SignUpKakaoUserDto(id as string),
+    );
 
-      const accessToken = this.jwtManagerService.sign('user', {
-        id: user.id,
-        email: user.email,
-      });
+    const accessToken = this.jwtManagerService.sign('user', {
+      id: user.id,
+      email: user.email,
+    });
 
-      response.cookie('accessToken', accessToken, this.cookieOptions);
-      return { accessToken };
-    } catch (error) {
-      throw new UnauthorizedException('인증에 실패했습니다.');
-    }
+    response.cookie('accessToken', accessToken, this.cookieOptions);
+    return { accessToken };
   }
 
   @Private('user')
@@ -182,39 +151,17 @@ export class UsersController {
     @DAccount('user') user: User,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const foundProfile = await this.usersService.findProfileByUserId(user.id);
-
-    if (foundProfile) throw new NotFoundException(FOUND_PROFILE);
-
-    const duplicatePhoneNumber =
-      await this.usersService.findProfileByPhoneNumber(
-        createProfileDto.phoneNumber,
-      );
-
-    if (duplicatePhoneNumber)
-      throw new ConflictException(DUPLICATE_PHONENUMBER);
-
-    const duplicateNickname = await this.usersService.findProfileByNickname(
-      createProfileDto.nickName,
-    );
-
-    if (duplicateNickname) throw new ConflictException(DUPLICATE_NICKNAME);
-
-    const profile = await this.usersService.createProfile(
+    return await this.usersService.createProfile(
       user.id,
       createProfileDto,
       file,
     );
-
-    return profile;
   }
 
   @Private('user')
   @Get('profile')
   async getProfile(@DAccount('user') user: User) {
-    const profile = await this.usersService.findProfileByUserId(user.id);
-    if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
-    return profile;
+    return await this.usersService.findProfileByUserId(user.id);
   }
 
   @Private('user')
@@ -225,48 +172,7 @@ export class UsersController {
     @DAccount('user') user: User,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const profile = await this.usersService.findProfileByUserId(user.id);
-    if (!profile) throw new NotFoundException(NOT_FOUND_PROFILE);
-
-    if (editProfileDto.nickName) {
-      const originalNickname = profile.nickName;
-      if (originalNickname !== editProfileDto.nickName) {
-        if (profile.nickNameUpdatedAt) {
-          const daysSinceLastUpdate = dayUtil
-            .day()
-            .diff(dayUtil.day(profile.nickNameUpdatedAt), 'day');
-          if (daysSinceLastUpdate < 30)
-            throw new ForbiddenException(INVALID_CHANGE_NICKNAME);
-        }
-        const duplicateNickname = await this.usersService.findProfileByNickname(
-          editProfileDto.nickName,
-        );
-        if (duplicateNickname) {
-          throw new ConflictException(DUPLICATE_NICKNAME);
-        }
-      }
-    }
-
-    if (editProfileDto.phoneNumber) {
-      const originalPhoneNumber = profile.phoneNumber;
-      if (originalPhoneNumber !== editProfileDto.phoneNumber) {
-        const duplicatePhoneNumber =
-          await this.usersService.findProfileByPhoneNumber(
-            editProfileDto.phoneNumber,
-          );
-        if (duplicatePhoneNumber) {
-          throw new ConflictException(DUPLICATE_PHONENUMBER);
-        }
-      }
-    }
-
-    const editedProfile = await this.usersService.editProfile(
-      user.id,
-      editProfileDto,
-      file,
-    );
-
-    return editedProfile;
+    return await this.usersService.editProfile(user.id, editProfileDto, file);
   }
 
   @Private('user')
@@ -299,18 +205,6 @@ export class UsersController {
     }
     return await this.usersService.getHasUserRated(user.id, latestMatch);
   }
-
-  // @Private('user')
-  // @Get('/applied-matches')
-  // async getAppliedMatches(@DAccount('user') user: User) {
-  //   return await this.usersService.getUserLatestRate(user.id, false);
-  // }
-
-  // @Private('user')
-  // @Get('/participated-matches')
-  // async getParticipatedMatches(@DAccount('user') user: User) {
-  //   return await this.usersService.getUserLatestRate(user.id, true);
-  // }
 
   @Private('user')
   @Get('/:matchId/rates')
