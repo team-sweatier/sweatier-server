@@ -14,36 +14,26 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import {
-  CHOOSE_GENDER,
-  CHOOSE_SPORTS_TYPE,
-  INVALID_CAPABILITY,
-  INVALID_CONTENT,
-  INVALID_PLACENAME,
-  INVALID_RATE,
-  INVALID_REGION,
-  INVALID_TITLE,
-  MINIMUM_RATERS_REQUIRED,
-} from './matches-error.messages';
+import { ErrorCodes } from 'src/common/exceptions/error-codes';
 
 export class CreateMatchDto {
   @IsString()
-  @MinLength(5, { message: INVALID_TITLE })
+  @MinLength(5, { message: ErrorCodes.INVALID_TITLE.message })
   title: string;
 
   @IsString()
-  @MinLength(10, { message: INVALID_CONTENT })
+  @MinLength(10, { message: ErrorCodes.INVALID_CONTENT.message })
   content: string;
 
-  @IsEnum(Gender, { message: CHOOSE_GENDER })
+  @IsEnum(Gender, { message: ErrorCodes.CHOOSE_GENDER.message })
   gender: Gender;
 
   @IsNumber()
-  @Min(2, { message: INVALID_CAPABILITY })
+  @Min(2, { message: ErrorCodes.INVALID_CAPABILITY.message })
   capability: number;
 
   @IsString()
-  @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
+  @IsNotEmpty({ message: ErrorCodes.CHOOSE_SPORTS_TYPE.message })
   sportsTypeName: string;
 
   @IsNumber()
@@ -53,15 +43,15 @@ export class CreateMatchDto {
   longitude: number;
 
   @IsString()
-  @MinLength(1, { message: INVALID_PLACENAME })
+  @MinLength(1, { message: ErrorCodes.INVALID_PLACENAME.message })
   placeName: string;
 
   @IsString()
-  @MinLength(2, { message: INVALID_REGION })
+  @MinLength(2, { message: ErrorCodes.INVALID_REGION.message })
   region: string;
 
   @IsString()
-  @MinLength(5, { message: INVALID_REGION })
+  @MinLength(5, { message: ErrorCodes.INVALID_REGION.message })
   address: string;
 
   @IsDateString()
@@ -71,25 +61,25 @@ export class CreateMatchDto {
 export class UpdateMatchDto {
   @IsString()
   @IsOptional()
-  @MinLength(5, { message: INVALID_TITLE })
+  @MinLength(5, { message: ErrorCodes.INVALID_TITLE.message })
   title: string;
 
   @IsString()
   @IsOptional()
-  @MinLength(10, { message: INVALID_CONTENT })
+  @MinLength(10, { message: ErrorCodes.INVALID_CONTENT.message })
   content: string;
 
   @IsOptional()
-  @IsEnum(Gender, { message: CHOOSE_GENDER })
+  @IsEnum(Gender, { message: ErrorCodes.CHOOSE_GENDER.message })
   gender: Gender;
 
   @IsNumber()
   @IsOptional()
-  @Min(2, { message: INVALID_CAPABILITY })
+  @Min(2, { message: ErrorCodes.INVALID_CAPABILITY.message })
   capability: number;
 
   @IsOptional()
-  @IsNotEmpty({ message: CHOOSE_SPORTS_TYPE })
+  @IsNotEmpty({ message: ErrorCodes.CHOOSE_SPORTS_TYPE.message })
   sportsTypeName: string;
 
   @IsNumber()
@@ -102,17 +92,17 @@ export class UpdateMatchDto {
 
   @IsString()
   @IsOptional()
-  @MinLength(1, { message: INVALID_PLACENAME })
+  @MinLength(1, { message: ErrorCodes.INVALID_PLACENAME.message })
   placeName: string;
 
   @IsString()
   @IsOptional()
-  @MinLength(2, { message: INVALID_REGION })
+  @MinLength(2, { message: ErrorCodes.INVALID_REGION.message })
   region: string;
 
   @IsString()
   @IsOptional()
-  @MinLength(5, { message: INVALID_REGION })
+  @MinLength(5, { message: ErrorCodes.INVALID_REGION.message })
   address: string;
 
   @IsOptional()
@@ -126,15 +116,15 @@ export class ParticipantRating {
   participantId: string;
 
   @IsInt()
-  @Max(5, { message: INVALID_RATE })
-  @Min(1, { message: INVALID_RATE })
+  @Max(5, { message: ErrorCodes.INVALID_RATE.message })
+  @Min(1, { message: ErrorCodes.INVALID_RATE.message })
   value: number;
 }
 
 export class RateDto {
   @Type(() => ParticipantRating)
   @ValidateNested({ each: true })
-  @ArrayNotEmpty({ message: MINIMUM_RATERS_REQUIRED })
+  @ArrayNotEmpty({ message: ErrorCodes.MINIMUM_RATERS_REQUIRED.message })
   ratings: ParticipantRating[];
 }
 
