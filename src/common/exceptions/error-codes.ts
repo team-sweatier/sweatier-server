@@ -8,6 +8,42 @@ export class ErrorCodes {
   }
 
   // 경기 관련 에러 코드
+  static CHOOSE_GENDER = new ErrorCodes(400, '성별을 선택해주세요.');
+
+  static CHOOSE_SPORTS_TYPE = new ErrorCodes(400, '종목을 설정해주세요.');
+
+  static INVALID_CAPABILITY = new ErrorCodes(
+    400,
+    '모집 인원을 두 명 이상 입력해주세요.',
+  );
+
+  static INVALID_CONTENT = new ErrorCodes(
+    400,
+    '내용은 열글자 이상 입력해주세요.',
+  );
+
+  static INVALID_PLACENAME = new ErrorCodes(400, '구장명을 입력해주세요.');
+
+  static INVALID_RATE = new ErrorCodes(
+    400,
+    '별점은 1점부터 5점까지 매길 수 있습니다.',
+  );
+
+  static INVALID_REGION = new ErrorCodes(
+    400,
+    '리전을 두글자 이상 입력해주세요.',
+  );
+
+  static INVALID_TITLE = new ErrorCodes(
+    400,
+    '제목은 다섯글자 이상 입력해주세요.',
+  );
+
+  static MINIMUM_RATERS_REQUIRED = new ErrorCodes(
+    400,
+    '최소 한명 이상 평가를 해야합니다.',
+  );
+
   static USER_PROFILE_NEEDED = new ErrorCodes(400, '프로필을 생성해주세요.');
   static MATCH_NOT_FINISHED = new ErrorCodes(
     400,
@@ -56,6 +92,32 @@ export class ErrorCodes {
   );
 
   // 사용자 관련 에러 코드
+  static BANK_INFO_NEEDED = new ErrorCodes(400, '계좌를 확인해주세요.');
+
+  static GENDER_TYPE_NEEDED = new ErrorCodes(400, '성별을 확인해주세요.');
+
+  static INVALID_EMAIL_FORMAT = new ErrorCodes(
+    400,
+    '이메일 형식을 충족해야합니다',
+  );
+
+  static INVALID_NICKNAME = new ErrorCodes(
+    400,
+    '닉네임은 두 글자 이상 입력해주세요.',
+  );
+
+  static INVALID_PASSWORD_FORMAT = new ErrorCodes(
+    400,
+    '비밀번호는 대소문자와 특수문자가 최소 1개 이상 존재해야합니다',
+  );
+
+  static INVALID_PASSWORD_LENGTH = new ErrorCodes(
+    400,
+    '비밀번호는 8자 이상이어야 합니다',
+  );
+
+  static PHONE_NUMBER_NEEDED = new ErrorCodes(400, '연락처를 확인해주세요.');
+
   static USER_INVALID_CREDENTIAL = new ErrorCodes(
     401,
     '유효하지 않은 사용자 인증 정보입니다.',

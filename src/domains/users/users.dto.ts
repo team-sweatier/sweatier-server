@@ -9,16 +9,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import {
-  BANK_INFO_NEEDED,
-  GENDER_TYPE_NEEDED,
-  INVALID_EMAIL_FORMAT,
-  INVALID_NICKNAME,
-  INVALID_PASSWORD_FORMAT,
-  INVALID_PASSWORD_LENGTH,
-  INVALID_USER_CREDENTIAL,
-  PHONE_NUMBER_NEEDED,
-} from './users-error.messages';
+import { ErrorCodes } from 'src/common/temp';
 
 // 대문자,소문자, 특수문자 각 1개이상씩 있는지 검사
 const passwordRegex =
@@ -37,42 +28,51 @@ export class SignUpKakaoUserDto {
 }
 
 export class SignUpUserDto {
-  @IsEmail({}, { message: INVALID_EMAIL_FORMAT })
+  @IsEmail({}, { message: ErrorCodes.INVALID_EMAIL_FORMAT.message })
   email: string;
 
-  @MinLength(8, { message: INVALID_PASSWORD_LENGTH })
-  @Matches(passwordRegex, { message: INVALID_PASSWORD_FORMAT })
+  @MinLength(8, { message: ErrorCodes.INVALID_PASSWORD_LENGTH.message })
+  @Matches(passwordRegex, {
+    message: ErrorCodes.INVALID_PASSWORD_FORMAT.message,
+  })
   @IsString()
   password: string;
 }
 
 export class SignInUserDto {
-  @IsEmail({}, { message: INVALID_USER_CREDENTIAL })
+  @IsEmail(
+    {},
+    {
+      message: ErrorCodes.USER_INVALID_CREDENTIAL.message,
+    },
+  )
   email: string;
 
-  @Matches(passwordRegex, { message: INVALID_USER_CREDENTIAL })
+  @Matches(passwordRegex, {
+    message: ErrorCodes.USER_INVALID_CREDENTIAL.message,
+  })
   @IsString()
   password: string;
 }
 
 export class CreateProfileDto {
-  @IsEnum(Gender, { message: GENDER_TYPE_NEEDED })
+  @IsEnum(Gender, { message: ErrorCodes.GENDER_TYPE_NEEDED.message })
   gender: Gender;
 
-  @IsString({ message: PHONE_NUMBER_NEEDED })
-  @MinLength(11, { message: PHONE_NUMBER_NEEDED })
+  @IsString({ message: ErrorCodes.PHONE_NUMBER_NEEDED.message })
+  @MinLength(11, { message: ErrorCodes.PHONE_NUMBER_NEEDED.message })
   phoneNumber: string;
 
-  @IsString({ message: BANK_INFO_NEEDED })
-  @MinLength(2, { message: BANK_INFO_NEEDED })
+  @IsString({ message: ErrorCodes.BANK_INFO_NEEDED.message })
+  @MinLength(2, { message: ErrorCodes.BANK_INFO_NEEDED.message })
   bankName: string;
 
-  @IsString({ message: BANK_INFO_NEEDED })
-  @MinLength(8, { message: BANK_INFO_NEEDED })
+  @IsString({ message: ErrorCodes.BANK_INFO_NEEDED.message })
+  @MinLength(8, { message: ErrorCodes.BANK_INFO_NEEDED.message })
   accountNumber: string;
 
-  @IsString({ message: INVALID_NICKNAME })
-  @MinLength(2, { message: INVALID_NICKNAME })
+  @IsString({ message: ErrorCodes.INVALID_NICKNAME.message })
+  @MinLength(2, { message: ErrorCodes.INVALID_NICKNAME.message })
   nickName: string;
 
   @IsString()
@@ -82,29 +82,29 @@ export class CreateProfileDto {
 export class EditProfileDto {
   @IsOptional()
   @IsNotEmpty()
-  @IsEnum(Gender, { message: GENDER_TYPE_NEEDED })
+  @IsEnum(Gender, { message: ErrorCodes.GENDER_TYPE_NEEDED.message })
   gender: Gender;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MinLength(11, { message: PHONE_NUMBER_NEEDED })
+  @MinLength(11, { message: ErrorCodes.PHONE_NUMBER_NEEDED.message })
   phoneNumber: string;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MinLength(2, { message: BANK_INFO_NEEDED })
+  @MinLength(2, { message: ErrorCodes.BANK_INFO_NEEDED.message })
   bankName: string;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @MinLength(8, { message: BANK_INFO_NEEDED })
+  @MinLength(8, { message: ErrorCodes.BANK_INFO_NEEDED.message })
   accountNumber: string;
 
   @IsOptional()
-  @IsNotEmpty({ message: INVALID_NICKNAME })
+  @IsNotEmpty({ message: ErrorCodes.INVALID_NICKNAME.message })
   nickName: string | undefined;
 
   @IsOptional()
