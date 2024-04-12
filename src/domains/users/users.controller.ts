@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Post,
   Put,
@@ -20,10 +19,6 @@ import { PrismaService } from 'src/database/prisma/prisma.service';
 import { DAccount } from 'src/decorators/account.decorator';
 import { Private } from 'src/decorators/private.decorator';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
-import {
-  INVALID_MATCH,
-  NO_MATCHES_FOUND,
-} from '../matches/matches-error.messages';
 import { MatchesService } from '../matches/matches.service';
 import { KakaoAuthService } from './kakao-auth/kakao-auth.service';
 import {
@@ -200,9 +195,6 @@ export class UsersController {
   @Get('latest-rating')
   async getUserLatestRate(@DAccount('user') user: User) {
     const latestMatch = await this.usersService.getUserLatestMatch(user.id);
-    if (!latestMatch) {
-      throw new NotFoundException(NO_MATCHES_FOUND);
-    }
     return await this.usersService.getHasUserRated(user.id, latestMatch);
   }
 
@@ -212,11 +204,6 @@ export class UsersController {
     @DAccount('user') user: User,
     @Param('matchId') matchId: string,
   ) {
-    const match = await this.prismaService.match.findUnique({
-      where: { id: matchId },
-    });
-
-    if (!match) throw new NotFoundException(INVALID_MATCH);
     return await this.usersService.getUserMatchRates(user.id, matchId);
   }
 }

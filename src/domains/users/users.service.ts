@@ -12,6 +12,8 @@ import UserDuplicatePhoneNumberException from './exceptions/user-duplicate-phone
 import UserDuplicateProfileException from './exceptions/user-duplicate-profile.exception';
 import UserDuplicateException from './exceptions/user-duplicate.exception';
 import UserInvalidNicknameChangeException from './exceptions/user-invalid-nickname-change.exception';
+import { UserLatestMatchNotFoundException } from './exceptions/user-latest-match-not-found';
+import { UserMatchNotFoundException } from './exceptions/user-match-not-found.exception';
 import UserProfileNotFoundException from './exceptions/user-profile-not-found.exception';
 import UserSportTypeNotFoundException from './exceptions/user-sport-type-not-found.exception';
 import UserUnauthorizedException from './exceptions/user-unauthorized.exception';
@@ -277,6 +279,7 @@ export class UsersService {
    *  */
   async getUserLatestMatch(userId: string) {
     const nowDate = new Date();
+
     const latestMatch = await this.prismaService.match.findFirst({
       where: {
         participants: {
@@ -290,6 +293,9 @@ export class UsersService {
         matchDay: 'desc',
       },
     });
+
+    if (!latestMatch) throw new UserLatestMatchNotFoundException();
+
     return latestMatch;
   }
 
@@ -306,6 +312,12 @@ export class UsersService {
   }
 
   async getUserMatchRates(userId: string, matchId: string) {
+    const match = await this.prismaService.match.findUnique({
+      where: { id: matchId },
+    });
+
+    if (!match) throw new UserMatchNotFoundException();
+
     const values = await this.prismaService.rating.findMany({
       where: {
         userId: userId,
