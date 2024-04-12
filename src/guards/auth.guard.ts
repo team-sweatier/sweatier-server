@@ -9,8 +9,8 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { AccountType } from 'src/domains/users/user.type';
-import { LOGIN_REQUIRED } from 'src/domains/users/users-error.messages';
 import { JwtManagerService } from 'src/jwt-manager/jwt-manager.service';
+import { LoginRequiredException } from './exceptions/login-required.exception';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -37,7 +37,7 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
     const accessToken = request.cookies['accessToken'];
 
-    if (!accessToken) throw new UnauthorizedException(LOGIN_REQUIRED);
+    if (!accessToken) throw new LoginRequiredException();
 
     const { id, accountTypeOfToken } =
       await this.jwtManagerService.verifyAccessToken(accessToken);

@@ -130,11 +130,14 @@ export class ErrorCodes {
     403,
     '닉네임 변경이 유효하지 않습니다.',
   );
+  static USER_LATEST_MATCH_NOT_FOUND = new ErrorCodes(
+    404,
+    '최신 매치가 없습니다.',
+  );
   static USER_PROFILE_NOT_FOUND = new ErrorCodes(
     404,
     '프로필을 찾을 수 없습니다.',
   );
-  static USER_NO_MATCHES_FOUND = new ErrorCodes(404, '최신 매치가 없습니다.');
   static SPORT_TYPE_NOT_FOUND = new ErrorCodes(404, '종목을 찾을 수 없습니다.');
   static USER_DUPLICATE = new ErrorCodes(409, '중복된 사용자입니다.');
   static USER_DUPLICATE_PROFILE = new ErrorCodes(
@@ -146,4 +149,5 @@ export class ErrorCodes {
     '중복된 전화번호입니다.',
   );
   static USER_DUPLICATE_NICKNAME = new ErrorCodes(409, '중복된 닉네임입니다.');
+  static LOGIN_REQUIRED = new ErrorCodes(401, '로그인이 필요합니다.');
 }

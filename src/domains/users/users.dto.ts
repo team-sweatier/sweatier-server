@@ -9,7 +9,7 @@ import {
   Matches,
   MinLength,
 } from 'class-validator';
-import { ErrorCodes } from 'src/common/temp';
+import { ErrorCodes } from 'src/common/exceptions/error-codes';
 
 // 대문자,소문자, 특수문자 각 1개이상씩 있는지 검사
 const passwordRegex =
