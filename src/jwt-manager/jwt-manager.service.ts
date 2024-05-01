@@ -1,12 +1,9 @@
-import {
-  Injectable,
-  OnModuleInit,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { User } from '@prisma/client';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { AccountType } from 'src/domains/users/user.type';
+import { JwtExpiredException } from './exceptions/jwt-expired.exception';
 
 @Injectable()
 export class JwtManagerService implements OnModuleInit {
@@ -31,7 +28,7 @@ export class JwtManagerService implements OnModuleInit {
       ) as JwtPayload;
       return { id, accountTypeOfToken: accountType };
     } catch (e) {
-      throw new UnauthorizedException('JWT 토큰이 만료되었습니다.');
+      throw new JwtExpiredException();
     }
   }
 }

@@ -150,4 +150,7 @@ export class ErrorCodes {
   );
   static USER_DUPLICATE_NICKNAME = new ErrorCodes(409, '중복된 닉네임입니다.');
   static LOGIN_REQUIRED = new ErrorCodes(401, '로그인이 필요합니다.');
+
+  // 인증 관련 에러 코드
+  static JWT_EXPIRED = new ErrorCodes(401, 'JWT 토큰이 만료되었습니다.');
 }
