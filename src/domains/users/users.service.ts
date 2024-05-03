@@ -257,7 +257,7 @@ export class UsersService {
     }
   }
 
-  private async signUpUserData(signUpUserDto: SignUpUserDto) {
+  public async signUpUserData(signUpUserDto: SignUpUserDto) {
     const id = nanoid(this.configService.get('NANOID_SIZE'));
 
     const encryptedPassword = await hash(
