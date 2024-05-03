@@ -15,18 +15,6 @@ import { ErrorCodes } from 'src/common/exceptions/error-codes';
 const passwordRegex =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]+$/;
 
-export class SignUpKakaoUserDto {
-  constructor(id: string) {
-    this.id = id;
-    this.email = 'kakao-account';
-  }
-
-  @IsString()
-  id: string;
-
-  email: string;
-}
-
 export class SignUpUserDto {
   @IsEmail({}, { message: ErrorCodes.INVALID_EMAIL_FORMAT.message })
   email: string;
@@ -37,6 +25,18 @@ export class SignUpUserDto {
   })
   @IsString()
   password: string;
+}
+
+export class SignUpKakaoUserDto {
+  constructor(id: string) {
+    this.id = id;
+    this.email = 'kakao-account';
+  }
+
+  @IsString()
+  id: string;
+
+  email: string;
 }
 
 export class SignInUserDto {
