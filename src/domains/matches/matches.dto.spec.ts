@@ -30,13 +30,13 @@ describe('CreateMatchDto', () => {
   test('경기 모집글 작성이 실패해야 함 - 성별 유효성 검사 실패', async () => {
     matchDto.gender = 'rainbow' as Gender;
     const validationErrors = await validate(matchDto);
-    expect(validationErrors).toHaveLength(1);
+    expect(validationErrors[0].constraints).toHaveProperty('isEnum');
   });
 
   test('경기 모집글 작성이 실패해야 함 - 모집인원 유효성 검사 실패', async () => {
     matchDto.capability = 0;
     const validationErrors = await validate(matchDto);
-    expect(validationErrors).toHaveLength(1);
+    expect(validationErrors[0].constraints).toHaveProperty('min');
   });
 
   test('경기 모집글 작성이 실패해야 함 - 날짜 유효성 검사 실패', async () => {
