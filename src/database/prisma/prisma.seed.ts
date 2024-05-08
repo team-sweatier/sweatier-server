@@ -95,17 +95,6 @@ const tiers = [
   },
 ];
 
-// async function sportTypeSeed() {
-//   await Promise.all(
-//     sportsTypes.map(async (sportType) => {
-//       await prismaService.sportsType.upsert({
-//         where: { name: sportType.name },
-//         update: {},
-//         create: { name: sportType.name, rules: sportType.rules },
-//       });
-//     }),
-//   );
-// }
 async function sportTypeSeed() {
   for (const sportType of sportsTypes) {
     await prismaService.sportsType.upsert({
@@ -331,7 +320,7 @@ async function ratingSeed() {
   }
 }
 
-async function seed() {
+export async function seed() {
   const userArray: UserProfile[] = [];
   await sportTypeSeed().then(tierSeed);
   for (let i = 0; i < 80; i++) {

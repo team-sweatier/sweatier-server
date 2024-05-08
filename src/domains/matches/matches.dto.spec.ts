@@ -46,7 +46,6 @@ describe('CreateMatchDto', () => {
     });
 
     const validationErrors = await validate(matchDto);
-    expect(validationErrors).not.toHaveLength(0);
     expect(validationErrors[0].constraints).toHaveProperty('isDateString');
   });
 });
