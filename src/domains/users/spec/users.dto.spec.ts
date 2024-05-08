@@ -7,7 +7,7 @@ import {
   SignInUserDto,
   SignUpKakaoUserDto,
   SignUpUserDto,
-} from './users.dto';
+} from '../users.dto';
 
 describe('SignUpUserDto', () => {
   const signUpUserDto = new SignUpUserDto();
@@ -25,7 +25,6 @@ describe('SignUpUserDto', () => {
   test('회원가입 DTO 검증이 실패해야 함 - 잘못된 이메일 형식', async () => {
     signUpUserDto.email = 'blalbadfasnaver.com';
     const validationErrors = await validate(signUpUserDto);
-    console.log('검증 오류', validationErrors);
 
     expect(validationErrors).not.toHaveLength(0);
     expect(validationErrors[0].constraints).toMatchObject({
@@ -37,7 +36,6 @@ describe('SignUpUserDto', () => {
     // 패스워드는 대문자,소문자, 특수문자 각 1개 이상씩 있어야 함
     signUpUserDto.password = '12312';
     const validationErrors = await validate(signUpUserDto);
-    console.log(validationErrors);
 
     expect(validationErrors).not.toHaveLength(0);
     expect(validationErrors[0].constraints).toMatchObject({
@@ -50,8 +48,6 @@ describe('SignUpUserDto', () => {
 describe('SignUpKakaoUserDto', () => {
   test('카카오 회원가입 DTO 검증이 성공적으로 수행되어야 함', async () => {
     const signUpKakaoUserDto = new SignUpKakaoUserDto('1235345');
-    signUpKakaoUserDto.email = 'kakao-account';
-
     const result = await validate(signUpKakaoUserDto);
     expect(result).toHaveLength(0);
   });
@@ -72,13 +68,13 @@ describe('SignInUserDto', () => {
 
   test('로그인 DTO 검증이 성공적으로 수행되어야 함', async () => {
     const validationErrors = await validate(signInUserDto);
+
     expect(validationErrors).toHaveLength(0);
   });
 
   test('로그인 DTO 검증이 실패해야 함 - 잘못된 이메일 형식', async () => {
     signInUserDto.email = 'blalbadfasnaver.com';
     const validationErrors = await validate(signInUserDto);
-    console.log('검증 오류', validationErrors);
 
     expect(validationErrors).not.toHaveLength(0);
     expect(validationErrors[0].constraints).toMatchObject({
@@ -90,7 +86,6 @@ describe('SignInUserDto', () => {
     // 패스워드는 대문자,소문자, 특수문자 각 1개 이상씩 있어야 함
     signInUserDto.password = '12312';
     const validationErrors = await validate(signInUserDto);
-    console.log(validationErrors);
 
     expect(validationErrors).not.toHaveLength(0);
     expect(validationErrors[0].constraints).toMatchObject({

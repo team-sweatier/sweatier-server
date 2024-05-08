@@ -7,24 +7,24 @@ import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import * as nanoid from 'nanoid';
 import { PrismaService } from 'src/database/prisma/prisma.service';
 import { StorageService } from 'src/storage/storage.service';
-import UserDuplicateNicknameException from './exceptions/user-duplicate-nickname.exception';
-import UserDuplicatePhoneNumberException from './exceptions/user-duplicate-phone-number.exception';
-import UserDuplicateProfileException from './exceptions/user-duplicate-profile.exception';
-import UserDuplicateException from './exceptions/user-duplicate.exception';
-import UserInvalidNicknameChangeException from './exceptions/user-invalid-nickname-change.exception';
-import { UserLatestMatchNotFoundException } from './exceptions/user-latest-match-not-found';
-import { UserMatchNotFoundException } from './exceptions/user-match-not-found.exception';
-import UserProfileNotFoundException from './exceptions/user-profile-not-found.exception';
-import UserSportTypeNotFoundException from './exceptions/user-sport-type-not-found.exception';
-import UserUnauthorizedException from './exceptions/user-unauthorized.exception';
+import UserDuplicateNicknameException from '../exceptions/user-duplicate-nickname.exception';
+import UserDuplicatePhoneNumberException from '../exceptions/user-duplicate-phone-number.exception';
+import UserDuplicateProfileException from '../exceptions/user-duplicate-profile.exception';
+import UserDuplicateException from '../exceptions/user-duplicate.exception';
+import UserInvalidNicknameChangeException from '../exceptions/user-invalid-nickname-change.exception';
+import { UserLatestMatchNotFoundException } from '../exceptions/user-latest-match-not-found';
+import { UserMatchNotFoundException } from '../exceptions/user-match-not-found.exception';
+import UserProfileNotFoundException from '../exceptions/user-profile-not-found.exception';
+import UserSportTypeNotFoundException from '../exceptions/user-sport-type-not-found.exception';
+import UserUnauthorizedException from '../exceptions/user-unauthorized.exception';
 import {
   CreateProfileDto,
   EditProfileDto,
   SignInUserDto,
   SignUpKakaoUserDto,
   SignUpUserDto,
-} from './users.dto';
-import { UsersService } from './users.service';
+} from '../users.dto';
+import { UsersService } from '../users.service';
 
 describe('유저 서비스 테스트', () => {
   let service: UsersService;
