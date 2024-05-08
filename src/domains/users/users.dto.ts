@@ -30,13 +30,10 @@ export class SignUpUserDto {
 export class SignUpKakaoUserDto {
   constructor(id: string) {
     this.id = id;
-    this.email = 'kakao-account';
   }
 
   @IsString()
   id: string;
-
-  email: string;
 }
 
 export class SignInUserDto {

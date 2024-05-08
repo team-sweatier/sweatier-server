@@ -208,9 +208,6 @@ export class UsersService {
     }
 
     const originalNickname = existingProfile.nickName;
-    if (newNickname && newNickname !== originalNickname) {
-      existingProfile.nickNameUpdatedAt = dayUtil.day().add(30, 'day').toDate();
-    }
 
     const isNicknameUpdated = newNickname && newNickname !== originalNickname;
 
