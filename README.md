@@ -35,8 +35,8 @@
 | 프로필 | 깃허브 | 담당 기능 |
 | :-: | :-: | :-: |
 | <img src="https://i.imgur.com/1442bdd.png" width="150" height="150"><br/>고지명 | [jimyungkoh](https://github.com/jimyungkoh) | Batch, 검색 관련  api 구현 <br/> 클라우드 환경 배포, 운영 <br/> 카카오 로그인 (FE, BE)|
-| <img src="https://i.imgur.com/cnHn465.png" width="150" height="150"><br/>강준호 | [mpfo0106](https://github.com/baeseongjae) | user 관련 api 구현<br/>더미 시드 데이터 생성 구현|
-| <img src="https://i.imgur.com/knasvXq.png" width="150" height="150"><br/>박상희 | [Sangddong](https://github.com/Jangeunhye) | match 관련 로직 구현<br/>유효성 검사 및 에러처리<br/>API 문서 작성 |
+| <img src="https://i.imgur.com/cnHn465.png" width="150" height="150"><br/>강준호 | [mpfo0106](https://github.com/mpfo0106) | user 관련 api 구현<br/>더미 시드 데이터 생성 구현|
+| <img src="https://i.imgur.com/knasvXq.png" width="150" height="150"><br/>박상희 | [Sangddong](https://github.com/Sangddong) | match 관련 로직 구현<br/>유효성 검사 및 에러처리<br/>API 문서 작성 |
 
 ## 3. 기술 스택
 ![기술 스택](https://i.imgur.com/IGPeWFS.png)
