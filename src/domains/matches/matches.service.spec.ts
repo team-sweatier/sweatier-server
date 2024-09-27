@@ -130,6 +130,7 @@ describe('MatchesService', () => {
           hostId: userId,
           sportsTypeId: sportType.id,
           tierId: tier.id,
+          capability: matchData.capability,
           participants: {
             connect: {
               id: userId,
