@@ -41,6 +41,9 @@ jobs:
           docker build -t $ECR_REGISTRY/sweatier-server:latest .
           docker push $ECR_REGISTRY/sweatier-server:latest
 
+      - name: 배포 스크립트에 실행 권한 추가
+        run: chmod +x scripts/start-server.sh
+
       - name: 배포 파일 압축하기
         run: tar -czvf deploy.tar.gz appspec.yml scripts
 
