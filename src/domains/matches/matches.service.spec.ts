@@ -1,5 +1,3 @@
-import { UsersService } from './../users/users.service';
-import { CreateProfileDto } from './../users/users.dto';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClient } from '@prisma/client';
@@ -130,6 +128,7 @@ describe('MatchesService', () => {
           hostId: userId,
           sportsTypeId: sportType.id,
           tierId: tier.id,
+          capability: matchData.capability,
           participants: {
             connect: {
               id: userId,

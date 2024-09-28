@@ -19,7 +19,6 @@ export class JwtManagerService implements OnModuleInit {
       expiresIn: '2h',
     });
   }
-
   async verifyAccessToken(accessToken: string) {
     try {
       const { sub: id, accountType } = verify(
