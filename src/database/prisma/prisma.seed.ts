@@ -323,7 +323,7 @@ async function ratingSeed() {
 export async function seed() {
   const userArray: UserProfile[] = [];
   await sportTypeSeed().then(tierSeed);
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 40; i++) {
     const userProfile = await userSeed();
     userArray.push(userProfile);
     for (let j = 0; j < 5; j++) {
