@@ -378,7 +378,10 @@ export function getRandomNickName() {
 }
 
 export function getRandomImg() {
-  return faker.image.avatarLegacy();
+  return faker.image.url({
+    width: 640,
+    height: 640,
+  });
 }
 
 export function getRandomOneLiner() {
