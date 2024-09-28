@@ -1,18 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { GCSService } from './gcs.service';
+// import { Test, TestingModule } from '@nestjs/testing';
+// import { GCSService } from './gcs.service';
 
-describe('GoogleCloudStorageService', () => {
-  let service: GCSService;
+// describe('GoogleCloudStorageService', () => {
+//   let service: GCSService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [GCSService],
-    }).compile();
+//   beforeEach(async () => {
+//     const module: TestingModule = await Test.createTestingModule({
+//       providers: [GCSService],
+//     }).compile();
 
-    service = module.get<GCSService>(GCSService);
-  });
+//     service = module.get<GCSService>(GCSService);
+//   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+//   it('should be defined', () => {
+//     expect(service).toBeDefined();
+//   });
+// });

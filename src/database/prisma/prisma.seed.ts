@@ -3,7 +3,7 @@ import { UserProfile } from '@prisma/client';
 import axios from 'axios';
 import { hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
-import { GCSService } from '../../storage/google/gcs.service';
+import { S3Service } from 'src/storage/amazon/s3.service';
 import {
   getRandomAccountNumber,
   getRandomBankName,
@@ -21,7 +21,7 @@ import { PrismaService } from './prisma.service';
 
 const prismaService = new PrismaService();
 const configService = new ConfigService();
-const storageService = new GCSService(configService);
+const storageService = new S3Service(configService);
 
 const sportsTypes = [
   {
@@ -323,7 +323,7 @@ async function ratingSeed() {
 export async function seed() {
   const userArray: UserProfile[] = [];
   await sportTypeSeed().then(tierSeed);
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 40; i++) {
     const userProfile = await userSeed();
     userArray.push(userProfile);
     for (let j = 0; j < 5; j++) {

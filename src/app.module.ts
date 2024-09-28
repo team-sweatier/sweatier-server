@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { PrismaModule } from './database/prisma/prisma.module';
+import { SeedManagementService } from './database/prisma/seedManagement';
 import { MatchesModule } from './domains/matches/matches.module';
 import { TiersModule } from './domains/tiers/tiers.module';
 import { UsersModule } from './domains/users/users.module';
@@ -26,6 +27,9 @@ import { StorageModule } from './storage/storage.module';
     TiersModule,
   ],
   controllers: [AppController],
-  providers: [{ provide: APP_GUARD, useClass: AuthGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: AuthGuard },
+    SeedManagementService,
+  ],
 })
 export class AppModule {}
