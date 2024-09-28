@@ -9,12 +9,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { nanoid } from 'nanoid';
-import { GCSService } from './storage/google/gcs.service';
+import { S3Service } from './storage/amazon/s3.service';
 
 @Controller()
 export class AppController {
   constructor(
-    private readonly gcsService: GCSService,
+    private readonly s3Service: S3Service,
     private configService: ConfigService,
   ) {}
 
@@ -30,6 +30,6 @@ export class AppController {
 
     const fileName = nanoid(this.configService.get('NANOID_SIZE'));
 
-    return await this.gcsService.uploadImage(fileName, file);
+    return await this.s3Service.uploadImage(fileName, file);
   }
 }
