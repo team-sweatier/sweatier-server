@@ -40,9 +40,9 @@ jobs:
           REPOSITORY: sweatier-server
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "$REGISTRY/$REPOSITORY:$IMAGE_TAG" > image.txt
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "${ECR_REGISTRY}/${REPOSITORY}:${IMAGE_TAG}" > image.txt
+          docker build -t ${ECR_REGISTRY}/${REPOSITORY}:${IMAGE_TAG} .
+          docker push ${ECR_REGISTRY}/${REPOSITORY}:${IMAGE_TAG}
 
       - name: 배포 스크립트에 실행 권한 추가
         run: chmod +x scripts/start-server.sh
