@@ -405,8 +405,10 @@ export function getRandomAccountNumber() {
 // 매치 관련 로직
 
 export function getRandomMatchDay() {
-  const startDate = new Date(2024, 2, 6);
-  const endDate = new Date(2024, 2, 27);
+  const currentDate = new Date();
+  const startDate = new Date(currentDate);
+  const endDate = new Date(currentDate);
+  endDate.setDate(endDate.getDate() + 30);
 
   const randomDate = faker.date.between({ from: startDate, to: endDate });
 

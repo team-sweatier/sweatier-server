@@ -3,7 +3,8 @@ import { UserProfile } from '@prisma/client';
 import axios from 'axios';
 import { hash } from 'bcrypt';
 import { nanoid } from 'nanoid';
-import { S3Service } from 'src/storage/amazon/s3.service';
+
+import { S3Service } from '../../storage/amazon/s3.service';
 import {
   getRandomAccountNumber,
   getRandomBankName,
