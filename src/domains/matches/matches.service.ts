@@ -70,24 +70,35 @@ export class MatchesService {
       };
     }
 
-    if (filters instanceof FindMatchesDto)
+    if (filters instanceof FindMatchesDto) {
+      let matchDayFilter = {
+        gte: todayUTC.toDate(),
+        lte: endDateUTC.toDate(),
+      };
+
+      if (filters.date) {
+        // 입력된 날짜를 KST로 파싱하고, UTC로 변환
+        const dateStartKST = dayUtil.day(filters.date).startOf('day');
+        const dateEndKST = dateStartKST.add(1, 'day');
+
+        const dateStartUTC = dateStartKST.utc();
+        const dateEndUTC = dateEndKST.utc();
+
+        matchDayFilter = {
+          gte: dateStartUTC.toDate(),
+          lte: dateEndUTC.toDate(),
+        };
+      }
+
       return {
-        matchDay: {
-          gte: todayUTC.toDate(),
-          lte: endDateUTC.toDate(),
-        },
-        ...(filters.date && {
-          matchDay: {
-            gte: dayUtil.day(filters.date).toDate(),
-            lt: dayUtil.day(filters.date).add(1, 'day').toDate(),
-          },
-        }),
+        matchDay: matchDayFilter,
         ...(filters.region && { region: filters.region }),
         ...(filters.sportType && {
           sportsType: { name: filters.sportType },
         }),
         ...(filters.tier && { tier: { value: filters.tier } }),
       };
+    }
 
     const search = filters
       .split(' ')
